@@ -1,67 +1,66 @@
 from .component import Component
+from .cell import Cell
 
-class Map:
-    def __init__(self, cols, rows, cellsize, bgcolor):
+class Map():
+    def __init__(self, cols: int, rows: int, cellsize: int, bgcolor: str):
         self.cols = cols
         self.rows = rows
         self.cellsize = cellsize
         self.bgcolor = bgcolor
-        self.grid = [[None for _ in range(cols)] for _ in range(rows)]
+        self.grid: list[list[Cell]] = [[None for _ in range(cols)] for _ in range(rows)]
 
-    def __getitem__(self, pos: tuple[int, int]): # Get the component at (row, col) position
+    def draw(self) -> None:
+        for row in range(self.rows):
+            for col in range(self.cols):
+                cell = self.grid[row][col]
+                if cell:
+                    print(cell.draw(), end="")
+                else:
+                    print(".", end="")
+            print(end="\n")
+
+    def __getitem__(self, pos: tuple[int, int]): # Get the cell at (row, col) position
         row, col = pos
-
         try:
             return self.grid[row][col]
         except IndexError:
             print("Position out of map bounds")
 
-    def __setitem__(self, pos: tuple[int, int], component: Component): # Place a component at (row, col) position
+    def __setitem__(self, pos: tuple[int, int], cell: Cell): # Place a cell at (row, col) position
         row, col = pos
-
         try:
-            self.grid[row][col] = component
+            self.grid[row][col] = cell
         except IndexError:
             print("Position out of map bounds")
 
-    def __delitem__(self, pos: tuple[int, int]): # Remove the component at (row, col) position
+    def __delitem__(self, pos: tuple[int, int]): # Remove the cell at (row, col) position
         row, col = pos
-
         try:
             self.grid[row][col] = None
         except IndexError:
             print("Position out of map bounds")
 
-    def remove(self, component: Component): # Remove a specific component from the map
+    def remove(self, cell: Cell): # Remove a specific cell from the map
         for row in range(self.rows):
             for col in range(self.cols):
-                if self.grid[row][col] == component:
+                if self.grid[row][col] == cell:
                     self.grid[row][col] = None
 
     def getxy(self, y: int, x: int): # Get the component based on pixel position
         row = y // self.cellsize
         col = x // self.cellsize
-        return self[row, col]
+        return self.grid[row][col]
 
-    def place(self, obj, y, x): # Place a car (or any component) at a pixel position
+    def place(self, obj, y, x): # Place a component at a pixel position
         row = y // self.cellsize
         col = x // self.cellsize
-        self[row, col] = obj
+        self.grid[row][col] = obj
 
     def view(self, y, x, height, width): # Return a view (subsection) of the map with given width and height
-        start_row = max(0, y // self.cellsize)
-        start_col = max(0, x // self.cellsize)
-        end_row = min(self.rows, start_row + height // self.cellsize)
-        end_col = min(self.cols, start_col + width // self.cellsize)
-
-        view_map = Map(end_col - start_col, end_row - start_row, self.cellsize, self.bgcolor)
+        view_map = Map(height, width, self.cellsize, self.bgcolor)
         for row in range(view_map.rows):
             for col in range(view_map.cols):
-                view_map[row, col] = self[start_row + row, start_col + col]
+                view_map.grid[row][col] = self.grid[row + x][col + y]
 
         return view_map
-
-    def draw(self) -> str: # Simple visual representation of the map grid in the console
-        for row in self.grid:
-            print(" ".join([cell.type()[0] if cell else '.' for cell in row]))
 

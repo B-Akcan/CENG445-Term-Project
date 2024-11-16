@@ -1,53 +1,45 @@
-from abc import ABC, abstractmethod
-
-class Component(ABC):
+class Component():
     _registered_components = {}
 
-    @abstractmethod
     def desc(self) -> str:
         pass
 
-    @abstractmethod
     def type(self) -> str:
         pass
 
-    @abstractmethod
     def attrs(self) -> dict:
         pass
 
     def __getattr__(self, attr):
-        if attr in self.attrs():
-            return self.__dict__.get(attr)
-        raise AttributeError(f"{self.__class__.__name__} has no attribute {attr}")
+        if attr not in self.attrs():
+            raise AttributeError(f"Class '{self.__class__.__name__}' has no attribute '{attr}'")
+        super().__getattribute__(attr)
 
     def __setattr__(self, attr, value):
-        if attr in self.attrs():
-            self.__dict__[attr] = value
-        else:
-            raise AttributeError(f"{self.__class__.__name__} has no attribute {attr}")
+        if attr not in self.attrs():
+            raise AttributeError(f"Class '{self.__class__.__name__}' has no attribute '{attr}'")
+        super().__setattr__(attr, value)
 
-    @abstractmethod
     def draw(self) -> str:
         pass
     
-    @staticmethod
-    def list():
-        return [(name, comp().desc()) for name, comp in Component._registered_components.items()]
+    @classmethod
+    def list(cls):
+        print( [(name, comp.desc()) for name, comp in cls._registered_components.items()] )
 
-    @staticmethod
-    def create(component_type: str):
-        if component_type in Component._registered_components:
-            return Component._registered_components[component_type]()
-        print(f"Component type '{component_type}' is not registered.")
-        return None
+    @classmethod
+    def create(cls, component_type: str, *p, **kw):
+        if component_type in cls._registered_components:
+            return cls._registered_components[component_type](*p, **kw)
+        raise ValueError(f"Component type '{component_type}' is not registered.")
 
-    @staticmethod
-    def register(component_type: str, component_class: type):
-        Component._registered_components[component_type] = component_class
+    @classmethod
+    def register(cls, component_type: str, component_class: type):
+        cls._registered_components[component_type] = component_class
 
-    @staticmethod
-    def unregister(component_type: str):
-        if component_type in Component._registered_components:
-            del Component._registered_components[component_type]
+    @classmethod
+    def unregister(cls, component_type: str):
+        if component_type in cls._registered_components:
+            del cls._registered_components[component_type]
         else:
-            print(f"Component type '{component_type}' is not registered.")
+            raise ValueError(f"Component type '{component_type}' is already unregistered.")

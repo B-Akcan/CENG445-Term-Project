@@ -1,11 +1,13 @@
 from .component import Component
-from .map import Map
 import math
 from .cell import Cell
+from .map import Map
+
+def clamp(value, min_value, max_value):
+    return max(min_value, min(value, max_value))
 
 class Car(Component):
-    def __init__(self, model: str = "", map_ref: Map | None = None, driver: str = "", pos: tuple[float, float] = (0.0, 0.0),
-                 angle: float = 0.0, topspeed: float = 100.0, topfuel: float = 100.0):
+    def __init__(self, model, map_ref, driver, pos, angle, topspeed, topfuel):
         self.model = model
         self.map = map_ref
         self.driver = driver
@@ -16,38 +18,44 @@ class Car(Component):
         self.speed = 0.0
         self.fuel = topfuel
 
-        self.active = False  # Track whether the car is started
+        self.started = False
         self.accel_flag = False
         self.brake_flag = False
         self.left_flag = False
         self.right_flag = False
 
-    def desc(self) -> str:
-        "An instance of Car class"
+    @classmethod
+    def desc(cls) -> str:
+        return "Represents a car in the game"
 
-    def type(self) -> str:
-        "Car"
+    @classmethod
+    def type(cls) -> str:
+        return "Car"
 
-    def attrs(self) -> dict:
+    @classmethod
+    def attrs(cls) -> dict:
         return {
-            "model": self.model,
-            "driver": self.driver,
-            "pos": self.pos,
-            "angle": self.angle,
-            "topspeed": self.topspeed,
-            "topfuel": self.topfuel,
-            "speed": self.speed,
-            "fuel": self.fuel
+            "model": str,
+            "map": Map,
+            "driver": str,
+            "pos": tuple[float, float],
+            "angle": float,
+            "topspeed": float,
+            "topfuel": float,
+            "speed": float,
+            "fuel": float,
+            "started": bool,
+            "accel_flag": bool,
+            "brake_flag": bool,
+            "left_flag": bool,
+            "right_flag": bool
         }
 
-    def draw(self) -> str:
-        pass
-
     def start(self) -> None:
-        self.active = True
+        self.started = True
 
     def stop(self) -> None:
-        self.active = False
+        self.started = False
         self.speed = 0.0
         self.accel_flag = False
         self.brake_flag = False
@@ -55,27 +63,35 @@ class Car(Component):
         self.right_flag = False
 
     def accel(self) -> None:
-        if self.active:
+        if self.started:
             self.accel_flag = True
+        else:
+            print(f"Car '{self.model}' is not started")
 
     def brake(self) -> None:
-        if self.active:
+        if self.started:
             self.brake_flag = True
+        else:
+            print(f"Car '{self.model}' is not started")
 
     def left(self) -> None:
-        if self.active:
+        if self.started:
             self.left_flag = True
+        else:
+            print(f"Car '{self.model}' is not started")
 
     def right(self) -> None:
-        if self.active:
+        if self.started:
             self.right_flag = True
+        else:
+            print(f"Car '{self.model}' is not started")
 
     def tick(self) -> None:
-        if not self.active:
-            print(f"Car {self.model} is not started")
+        if not self.started:
+            print(f"Car '{self.model}' is not started")
             return
         if self.fuel <= 0:
-            print(f"Car {self.model} is out of fuel")
+            print(f"Car '{self.model}' is out of fuel")
             return
 
         # Set speed based on flags
@@ -86,14 +102,16 @@ class Car(Component):
 
         # Set angle based on flags
         if self.left_flag:
-            self.angle -= 5
+            self.angle += 45
         if self.right_flag:
-            self.angle += 5
+            self.angle -= 45
 
         # Update position based on speed and angle
         rad_angle = math.radians(self.angle)
-        self.pos = (self.pos[0] + self.speed * math.sin(rad_angle),
-                    self.pos[1] + self.speed * math.cos(rad_angle))
+        new_pos_x = self.pos[0] + self.speed * math.sin(rad_angle)
+        new_pos_y = self.pos[1] + self.speed * math.cos(rad_angle)
+        self.pos = (clamp(new_pos_x, 0, self.map.cols * self.map.cellsize),
+                    clamp(new_pos_y, 0, self.map.rows * self.map.cellsize))
 
         # Reduce fuel based on speed
         self.fuel -= self.speed * 0.1
@@ -102,10 +120,10 @@ class Car(Component):
 
         # Interact with the current cell
         grid_pos = (int(self.pos[0] // self.map.cellsize), int(self.pos[1] // self.map.cellsize))
-        component = self.map[grid_pos] if (0 <= grid_pos[0] < self.map.rows and 0 <= grid_pos[1] < self.map.cols) else None
+        cell = self.map[grid_pos] if (0 <= grid_pos[0] < self.map.rows and 0 <= grid_pos[1] < self.map.cols) else None
 
-        if component and isinstance(component, Cell):
-            component.interact(self, *self.pos)
+        if cell and isinstance(cell, Cell):
+            cell.interact(self, *self.pos)
 
         # Reset flags after processing
         self.accel_flag = False
