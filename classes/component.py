@@ -2,13 +2,13 @@ class Component():
     _registered_components = {}
 
     def desc(self) -> str:
-        pass
+        return "Represents a component in the game"
 
     def type(self) -> str:
-        pass
+        return "Component"
 
     def attrs(self) -> dict:
-        pass
+        return {}
 
     def __getattr__(self, attr):
         if attr not in self.attrs():

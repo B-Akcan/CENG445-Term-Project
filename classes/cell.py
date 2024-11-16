@@ -1,11 +1,7 @@
 from .component import Component
+import random
 
 class Cell(Component):
-    def __init__(self, row, col, rotation):
-        self.row = row
-        self.col = col
-        self.rotation = rotation
-
     @classmethod
     def desc(cls) -> str:
         return "Represents a cell in the game"
@@ -68,10 +64,55 @@ class Obstacle(Cell):
         return "Obstacle"
     
     def draw(self) -> str:
-        return "O"
+        pass
+    
+    def interact(self, car, y: float, x: float):
+        pass
+
+class Wall(Obstacle):
+    @classmethod
+    def desc(cls) -> str:
+        return "Represents a wall obstacle cell in the game"
+    
+    @classmethod
+    def type(cls) -> str:
+        return "Wall"
+    
+    def draw(self) -> str:
+        return "W"
     
     def interact(self, car, y: float, x: float):
         car.speed = 0
+
+class Mud(Obstacle):
+    @classmethod
+    def desc(cls) -> str:
+        return "Represents a mud obstacle cell in the game"
+    
+    @classmethod
+    def type(cls) -> str:
+        return "Mud"
+    
+    def draw(self) -> str:
+        return "M"
+    
+    def interact(self, car, y: float, x: float):
+        car.speed = max(0, car.speed - 3)
+
+class Ice(Obstacle):
+    @classmethod
+    def desc(cls) -> str:
+        return "Represents a ice obstacle cell in the game"
+    
+    @classmethod
+    def type(cls) -> str:
+        return "Ice"
+    
+    def draw(self) -> str:
+        return "I"
+    
+    def interact(self, car, y: float, x: float):
+        car.angle = random.randint(0, 359)
 
 class Bonus(Cell):
     @classmethod
@@ -101,7 +142,7 @@ class Booster(Bonus):
         return "B"
     
     def interact(self, car, y: float, x: float):
-        car.speed = min(car.topspeed, car.speed + 5)
+        car.speed = min(car.topspeed, car.speed + 3)
 
 class Refuel(Bonus):
     @classmethod
@@ -130,8 +171,8 @@ class Road(Cell):
     def draw(self) -> str:
         pass
     
-    def interact(self, car, y: float, x: float):
-        pass
+    def interact(self, car, y, x):
+        car.speed = max(0, car.speed - 0.5)  # due to friction
     
 class StraightRoad(Road):
     @classmethod
@@ -143,44 +184,14 @@ class StraightRoad(Road):
         return "StraightRoad"
     
     def draw(self) -> str:
-        pass
-    
-    def interact(self, car, y, x):
-        pass
-    
-class StraightAxisAlignedRoad(StraightRoad):
-    @classmethod
-    def desc(cls) -> str:
-        return "Represents a straight axis aligned road cell in the game"
-    
-    @classmethod
-    def type(cls) -> str:
-        return "StraightAxisAlignedRoad"
-    
-    def draw(self) -> str:
-        if self.rotation == 0 or self.rotation == 2:
-            return "-"
-        return "|"
-    
-    def interact(self, car, y, x):
-        car.speed = max(0, car.speed - 0.5)  # due to friction
-    
-class StraightDiagonalRoad(StraightRoad):
-    @classmethod
-    def desc(cls) -> str:
-        return "Represents a straight diagonal road cell in the game"
-    
-    @classmethod
-    def type(cls) -> str:
-        return "StraightDiagonalRoad"
-    
-    def draw(self) -> str:
-        if self.rotation == 0 or self.rotation == 2:
-            return "\\"
-        return "/"
-    
-    def interact(self, car, y, x):
-        car.speed = max(0, car.speed - 0.7)
+        if self.rotation == 0:
+            return "━"
+        elif self.rotation == 1:
+            return "┃"
+        elif self.rotation == 2:
+            return "╲"
+        else:
+            return "╱"
     
 class Turn90(Road):
     @classmethod
@@ -200,8 +211,4 @@ class Turn90(Road):
             return "┛"
         else:
             return "┗"
-    
-    def interact(self, car, y, x):
-        car.speed = max(0, car.speed - 1.0)
-        car.angle += 90
     

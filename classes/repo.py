@@ -15,7 +15,7 @@ class Repo(Singleton):
     _id = 0  # ID counter
 
     @staticmethod
-    def create(**kw) -> int: # Creates a new object with a unique ID and stores it in the Repo
+    def create(**kw) -> int: # Creates a new map object with a unique ID and stores it in the Repo
         assigned_id = Repo._id
         Repo._objects[assigned_id] = Map(**kw)
         Repo._id += 1

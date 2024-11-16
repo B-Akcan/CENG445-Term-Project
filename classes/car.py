@@ -1,6 +1,6 @@
 from .component import Component
-import math
 from .cell import Cell
+import math
 from .map import Map
 
 def clamp(value, min_value, max_value):
@@ -11,7 +11,7 @@ class Car(Component):
         self.model = model
         self.map = map_ref
         self.driver = driver
-        self.pos = pos
+        self.pos = pos # (y, x)
         self.angle = angle
         self.topspeed = topspeed
         self.topfuel = topfuel
@@ -50,6 +50,9 @@ class Car(Component):
             "left_flag": bool,
             "right_flag": bool
         }
+
+    def draw(self) -> str:
+        return f"Car {self.model} with driver {self.driver} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.1f}, fuel {self.fuel:.2f} and angle {self.angle:.2f}."
 
     def start(self) -> None:
         self.started = True
@@ -124,6 +127,8 @@ class Car(Component):
 
         if cell and isinstance(cell, Cell):
             cell.interact(self, *self.pos)
+        else:
+            self.speed = 0.1
 
         # Reset flags after processing
         self.accel_flag = False
@@ -131,4 +136,4 @@ class Car(Component):
         self.left_flag = False
         self.right_flag = False
 
-        print(f"{self.model} is at position {self.pos} with speed {self.speed} and fuel {self.fuel}.")
+        print(f"{self.model} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.1f} and fuel {self.fuel:.2f}.")
