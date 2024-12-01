@@ -9,7 +9,7 @@ def clamp(value, min_value, max_value):
 class Car(Component):
     def __init__(self, model, map_ref, driver, pos, angle, topspeed, topfuel):
         self.model = model
-        self.map = map_ref
+        self.map = map_ref # of type Map
         self.driver = driver
         self.pos = pos # (y, x)
         self.angle = angle
@@ -137,3 +137,20 @@ class Car(Component):
         self.right_flag = False
 
         print(f"{self.model} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.1f} and fuel {self.fuel:.2f}.")
+
+    def to_dict(self): # excludes map_ref, to prevent circular reference
+        return {
+            "model": self.model,
+            "driver": self.driver,
+            "pos": self.pos,
+            "angle": self.angle,
+            "topspeed": self.topspeed,
+            "topfuel": self.topfuel,
+            "speed": self.speed,
+            "fuel": self.fuel,
+            "started": self.started,
+            "accel_flag": self.accel_flag,
+            "brake_flag": self.brake_flag,
+            "left_flag": self.left_flag,
+            "right_flag": self.right_flag,
+        }

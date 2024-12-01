@@ -1,5 +1,6 @@
 from .component import Component
 import random
+import time
 
 class Cell(Component):
     @classmethod
@@ -23,6 +24,13 @@ class Cell(Component):
 
     def interact(self, car, y, x):
         pass
+
+    def to_dict(self):
+        return {
+            "row": self.row,
+            "col": self.col,
+            "rotation": self.rotation
+        }
     
 class Decoration(Cell):
     @classmethod
@@ -52,7 +60,19 @@ class Checkpoint(Cell):
         return "C"
     
     def interact(self, car, y, x):
-        print(f"Car {car.model} reached a checkpoint at ({x}, {y}).")
+        car_id = car.map.get_car_id(car)
+        checkpoint_id = car.map.get_checkpoint_id(self)
+
+        if car_id != -1:
+            if (car.map.last_checkpoints[car_id] + 1) % len(car.map.checkpoints) == checkpoint_id:
+                prev_last_checkpoint = car.map.last_checkpoints[car_id]
+                car.map.last_checkpoints[car_id] = checkpoint_id
+                if car_id not in car.map.checkpoint_times:
+                    car.map.checkpoint_times[car_id] = [None] * 4
+                car.map.checkpoint_times[car_id][checkpoint_id] = time.time() - car.map.start_time
+                if prev_last_checkpoint != -1 and checkpoint_id == 0:
+                    car.map.lap_counts[car_id] += 1
+
     
 class Obstacle(Cell):
     @classmethod
