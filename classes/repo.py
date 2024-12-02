@@ -1,7 +1,8 @@
-from .component import Component
-from .map import Map
 from .singleton import Singleton
+from .map import Map
+from .component import Component
 import json
+from pathlib import Path
 
 class Repo(Singleton):
     _maps = {}  # Dict<Int(id), Map>
@@ -40,6 +41,7 @@ class Repo(Singleton):
 
     @staticmethod
     def delete(map_id: int) -> None: # Deletes a map by ID
+        # Detach from all users
         for user in Repo._attached_maps:
             if map_id in Repo._attached_maps[user]:
                 Repo._attached_maps[user].remove(map_id)
@@ -52,12 +54,6 @@ class Repo(Singleton):
         return Component
     
     @staticmethod
-    def getMapOfUser(id: int, user: str) -> Map | None:
-        if id in Repo._attached_maps[user]:
-            return Repo._maps[id]
-        raise ValueError(f"Map with id '{id}' is not attached to user '{user}'")
-    
-    @staticmethod
     def addUser(username: str) -> None:
         if username not in Repo._attached_maps:
             Repo._attached_maps[username] = []
@@ -65,7 +61,9 @@ class Repo(Singleton):
     @staticmethod
     def saveMap(map_id: int) -> None:
         if map_id in Repo._maps:
-            with open(f"./maps/map{map_id}", "w") as file:
+            root = Path(__file__).parent
+            path_to_create = root / "maps" / f"map{map_id}.json"
+            with path_to_create.open("w") as file:
                 file.write(json.dumps(Repo._maps[map_id].to_dict(), indent=4))
         else:
             print(f"No map with id {map_id} exist.")
@@ -73,7 +71,9 @@ class Repo(Singleton):
     @staticmethod
     def loadMap(map_id: int) -> Map:
         try: # if map is saved before
-            with open(f"./maps/map{map_id}", "r") as file:
+            root = Path(__file__).parent
+            path_to_read = root / "maps" / f"map{map_id}.json"
+            with path_to_read.open("r") as file:
                 return json.loads(file)
         except:
             if map_id in Repo._maps:

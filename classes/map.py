@@ -1,17 +1,9 @@
-from .cell import Cell, Checkpoint
 from .singleton import Singleton
+from .component import Cell, Checkpoint, Car
 import threading as th
 import time
 
-class CarIdCounter(Singleton):
-    val = 0
-
-    def get(self):
-        cur = self.val
-        self.val += 1
-        return cur
-    
-class CheckpointIdCounter(Singleton):
+class ComponentIdCounter(Singleton):
     val = 0
 
     def get(self):
@@ -25,45 +17,47 @@ class Map():
         self.rows: int = rows
         self.cellsize: int = cellsize
         self.bgcolor: str = bgcolor
-        self.grid: list[list[Cell]] = [[None for _ in range(cols)] for _ in range(rows)]
-        self.cars = {}  # dict[int(car id), Car]
-        self.checkpoints: dict[int, Checkpoint] = {} # dict[int(checkpoint id), Checkpoint]
-        self.lap_counts: dict[int, int] = {}  # dict[int(Car id), int(lap count)]
-        self.last_checkpoints: dict[int, int] = {} # dict[int(Car id), int(last checkpoint id)]
-        self.checkpoint_times: dict[int, list[float]] = {} # dict[int(Car id), list[float]]
         self.game_mode: bool = False
+        self.start_time = 0.0
         self.lock: th.Lock = th.Lock()
 
-    def __getitem__(self, pos: tuple[int, int]): # Get the cell at given position
-        row, col = pos
-        try:
-            return self.grid[row][col]
-        except IndexError:
-            print("Position out of map bounds")
+        self.grid: list[list[Cell]] = [[None for _ in range(cols)] for _ in range(rows)]
+        self.cells: dict[int, Cell] = {} # dict[int(cell id), Cell]
+        self.cars: dict[int, Car] = {}  # dict[int(car id), Car]
+        self.checkpoints: dict[int, Checkpoint] = {} # dict[int(checkpoint id), Checkpoint]
 
-    def __setitem__(self, pos: tuple[int, int], cell: Cell): # Place a cell at given position
+    def __getitem__(self, pos): # Get the cell at given position
         row, col = pos
-        try:
+        if 0 <= row < self.rows or 0 <= col < self.cols:
+            return self.grid[row][col]
+        raise IndexError("Position out of map bounds\n")
+
+    def __setitem__(self, pos, cell: Cell): # Place a cell at given position
+        row, col = pos
+        if 0 <= row < self.rows or 0 <= col < self.cols:
             self.grid[row][col] = cell
             cell.row = row
             cell.col = col
             cell.rotation = 0
 
-            if isinstance(cell, Checkpoint):
-                self.add_checkpoint(cell)
-        except IndexError:
-            print("Position out of map bounds")
+            self.add_cell(cell)
+            
+            return
+        
+        raise IndexError("Position out of map bounds\n")
 
-    def __delitem__(self, pos: tuple[int, int]): # Remove the cell at given position
+    def __delitem__(self, pos): # Remove the cell at given position
         row, col = pos
-        try:
+        if 0 <= row < self.rows or 0 <= col < self.cols:
             cell = self.grid[row][col]
             self.grid[row][col] = None
 
-            if isinstance(cell, Checkpoint):
-                self.remove_checkpoint(cell)
-        except IndexError:
-            print("Position out of map bounds")
+            cell_id = self.get_cell_id(cell)
+            self.remove_cell(cell_id)
+
+            return
+        
+        raise IndexError("Position out of map bounds\n")
 
     def removeAllCellsWithType(self, cell_type: str): # Remove all cells of a given type from the map
         for row in range(self.rows):
@@ -86,13 +80,12 @@ class Map():
             obj.col = col
             obj.rotation = 0
 
-            if isinstance(obj, Checkpoint):
-                self.add_checkpoint(obj)
+            self.add_cell(obj)
 
         elif obj.__class__.__name__ == "Car":
             obj.pos = (x, y)
-            self.add_car(obj)
-
+            return self.add_car(obj)
+            
     def view(self, x, y, width, height): # Return a view (subsection) of the map with given width and height
         view_map = Map(height, width, self.cellsize, self.bgcolor)
         for row in range(view_map.rows):
@@ -100,52 +93,62 @@ class Map():
                 view_map.grid[row][col] = self.grid[row + x][col + y]
 
         return view_map
+    
+    def add_cell(self, cell) -> None:
+        with self.lock:
+            if cell not in list(self.cells.values()):
+                cell_id = ComponentIdCounter().get()
+                self.cells[cell_id] = cell
 
+                if isinstance(cell, Checkpoint):
+                    self.checkpoints[cell_id] = cell
+
+                return cell_id
+            return -1
+        
+    def remove_cell(self, cell_id: int) -> None:
+        with self.lock:
+            cell = self.cells[cell_id]
+
+            if isinstance(cell, Checkpoint):
+                for c in self.checkpoints:
+                    if self.checkpoints[c] == cell:
+                        del self.checkpoints[c]
+                        break
+
+            del self.cells[cell_id]
+
+    def get_cell_id(self, cell: Cell) -> int:
+        for c in self.cells:
+            if self.cells[c] == cell:
+                return c
+        return -1
+            
     def add_car(self, car) -> None:
         with self.lock:
             if car not in list(self.cars.values()):
-                car_id = CarIdCounter().get()
+                car_id = ComponentIdCounter().get()
                 self.cars[car_id] = car
-                self.lap_counts[car_id] = 0
-                self.last_checkpoints[car_id] = -1
+                return car_id
+            return -1
     
-    def remove_car(self, car) -> None:
+    def remove_car(self, car_id: int) -> None:
         with self.lock:
-            car_id = -1
-            for k in self.cars:
-                if self.cars[k] == car:
-                    car_id = k
-
-            if car_id != -1:
-                del self.cars[car_id]
-                del self.lap_counts[car_id]
-                del self.last_checkpoints[car_id]
+            del self.cars[car_id]
 
     def get_car_id(self, car) -> int:
         for k in self.cars:
             if self.cars[k] == car:
                 return k
         return -1
-
-    def add_checkpoint(self, checkpoint: Checkpoint) -> None:
-        with self.lock:
-            checkpoint_id = CheckpointIdCounter().get()
-            self.checkpoints[checkpoint_id] = checkpoint
-
-    def remove_checkpoint(self, checkpoint: Checkpoint) -> None:
-        with self.lock:
-            cp_id = -1
-            for k in self.checkpoints:
-                if self.checkpoints[k] == checkpoint:
-                    cp_id = k
-
-            if cp_id != -1:
-                del self.checkpoints[cp_id]
-
-    def get_checkpoint_id(self, checkpoint: Checkpoint) -> int:
-        for k in self.checkpoints:
-            if self.checkpoints[k] == checkpoint:
-                return k
+    
+    def get_checkpoint_order(self, checkpoint: Checkpoint) -> int:
+        i = 0
+        cps = list(self.checkpoints.values())
+        while i < len(cps):
+            if cps[i] == checkpoint:
+                return i
+            i += 1
         return -1
 
     def draw(self) -> None:
@@ -168,25 +171,38 @@ class Map():
             print("Car Rankings:")
             for i in car_ids:
                 car = self.cars[i]
-                lap_count = self.lap_counts[i]
-                checkpoint = self.last_checkpoints[i]
+                checkpoint = car.last_checkpoint
                 if checkpoint != -1:
-                    time_elapsed = self.checkpoint_times[i][checkpoint]
-                    print(f"{car.model}: {lap_count} laps, last checkpoint: {checkpoint}, time elapsed since last checkpoint: {time_elapsed:.2f} s")
+                    time_elapsed = time.time() - car.checkpoint_times[checkpoint]
+                    print(f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time elapsed since last checkpoint: {time_elapsed:.2f} s")
                 else:
-                    print(f"{car.model}: {lap_count} laps, last checkpoint: None")
+                    print(f"{car.model}: {car.lap_count} lap(s), last checkpoint: None")
 
-    def sort_cars(self) -> list[int]:
-        sorted_lap_counts = dict(sorted(self.lap_counts.items(), key=lambda x: x[1], reverse=True)) # sort by descending lap counts
-        car_ids = list(sorted_lap_counts.keys())
+    def sort_cars(self):
+        len_cars = len(self.cars)
+        car_ids = list(self.cars.keys())
+        cars = list(self.cars.values())
 
-        # Sort by descending last checkpoints
+        # sort by descending lap counts
         swapped = True
         while swapped:
             swapped = False
             i = 0
-            while i < len(car_ids) - 1:
-                if self.lap_counts[car_ids[i]] == self.lap_counts[car_ids[i+1]] and self.last_checkpoints[car_ids[i]] < self.last_checkpoints[car_ids[i+1]]:
+            while i < len_cars - 1:
+                if cars[i].lap_count < cars[i+1].lap_count:
+                    cars[i], cars[i+1] = cars[i+1], cars[i]
+                    car_ids[i], car_ids[i+1] = car_ids[i+1], car_ids[i]
+                    swapped = True
+                i += 1
+
+        # sort by descending last checkpoints
+        swapped = True
+        while swapped:
+            swapped = False
+            i = 0
+            while i < len_cars - 1:
+                if cars[i].lap_count == cars[i+1].lap_count and cars[i].last_checkpoint < cars[i+1].last_checkpoint:
+                    cars[i], cars[i+1] = cars[i+1], cars[i]
                     car_ids[i], car_ids[i+1] = car_ids[i+1], car_ids[i]
                     swapped = True
                 i += 1
@@ -202,6 +218,7 @@ class Map():
 
     def stop(self) -> None:
         self.game_mode = False
+        self.start_time = 0.0
 
     def game_loop(self) -> None:
         tick_interval = 0.1
@@ -217,12 +234,10 @@ class Map():
             "rows": self.rows,
             "cellsize": self.cellsize,
             "bgcolor": self.bgcolor,
-            "grid": [[cell.to_dict() if cell else None for cell in row] for row in self.grid],
-            "cars": {car_id: car.to_dict() for car_id, car in self.cars.items()},
-            "checkpoints": {checkpoint_id: checkpoint.to_dict() for checkpoint_id, checkpoint in self.checkpoints.items()},
-            "lap_counts": self.lap_counts,
-            "last_checkpoints": self.last_checkpoints,
-            "checkpoint_times": self.checkpoint_times,
             "game_mode": self.game_mode,
-            "start_time": self.start_time
+            "start_time": self.start_time,
+            "grid": [[cell.to_dict() if cell else None for cell in row] for row in self.grid],
+            "cells": {cell_id: cell.to_dict() for cell_id, cell in self.cells.items()},
+            "cars": {car_id: car.to_dict() for car_id, car in self.cars.items()},
+            "checkpoints": {checkpoint_id: checkpoint.to_dict() for checkpoint_id, checkpoint in self.checkpoints.items()}
         }
