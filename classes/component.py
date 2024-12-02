@@ -155,34 +155,32 @@ class Car(Component):
     def accel(self) -> None:
         if self.started:
             self.accel_flag = True
-        else:
-            print(f"Car '{self.model}' is not started")
+            return
+        raise ValueError(f"Car '{self.model}' is not started.\n")
 
     def brake(self) -> None:
         if self.started:
             self.brake_flag = True
-        else:
-            print(f"Car '{self.model}' is not started")
+            return
+        raise ValueError(f"Car '{self.model}' is not started.\n")
 
     def left(self) -> None:
         if self.started:
             self.left_flag = True
-        else:
-            print(f"Car '{self.model}' is not started")
+            return
+        raise ValueError(f"Car '{self.model}' is not started.\n")
 
     def right(self) -> None:
         if self.started:
             self.right_flag = True
-        else:
-            print(f"Car '{self.model}' is not started")
+            return
+        raise ValueError(f"Car '{self.model}' is not started.\n")
 
     def tick(self) -> None:
         if not self.started:
-            print(f"Car '{self.model}' is not started")
-            return
+            raise ValueError(f"Car '{self.model}' is not started")
         if self.fuel <= 0:
-            print(f"Car '{self.model}' is out of fuel")
-            return
+            raise ValueError(f"Car '{self.model}' is out of fuel")
 
         # Set speed based on flags
         if self.accel_flag and self.speed < self.topspeed:

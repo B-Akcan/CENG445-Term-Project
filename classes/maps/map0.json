@@ -2,31 +2,15 @@
     "cols": 10,
     "rows": 10,
     "cellsize": 64,
-    "bgcolor": "green",
+    "bgcolor": "GREEN",
     "game_mode": false,
     "start_time": 0.0,
     "grid": [
         [
-            {
-                "row": 0,
-                "col": 0,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 1,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 2,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 3,
-                "rotation": 0
-            },
+            null,
+            null,
+            null,
+            null,
             null,
             null,
             null,
@@ -37,116 +21,12 @@
         [
             null,
             null,
-            {
-                "row": 1,
-                "col": 2,
-                "rotation": 0
-            },
-            {
-                "row": 1,
-                "col": 3,
-                "rotation": 0
-            },
-            {
-                "row": 1,
-                "col": 4,
-                "rotation": 0
-            },
-            {
-                "row": 1,
-                "col": 5,
-                "rotation": 0
-            },
-            {
-                "row": 1,
-                "col": 6,
-                "rotation": 0
-            },
-            {
-                "row": 1,
-                "col": 7,
-                "rotation": 1
-            },
-            null,
-            null
-        ],
-        [
-            {
-                "row": 2,
-                "col": 0,
-                "rotation": 0
-            },
-            {
-                "row": 2,
-                "col": 1,
-                "rotation": 0
-            },
-            {
-                "row": 2,
-                "col": 2,
-                "rotation": 0
-            },
-            {
-                "row": 2,
-                "col": 3,
-                "rotation": 0
-            },
-            null,
-            null,
-            null,
-            {
-                "row": 2,
-                "col": 7,
-                "rotation": 1
-            },
-            null,
-            null
-        ],
-        [
             null,
             null,
             null,
             null,
             null,
             null,
-            null,
-            {
-                "row": 3,
-                "col": 7,
-                "rotation": 1
-            },
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            {
-                "row": 4,
-                "col": 7,
-                "rotation": 1
-            },
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            {
-                "row": 5,
-                "col": 7,
-                "rotation": 1
-            },
             null,
             null
         ],
@@ -163,11 +43,55 @@
             null
         ],
         [
-            {
-                "row": 7,
-                "col": 0,
-                "rotation": 0
-            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        [
+            null,
             null,
             null,
             null,
@@ -203,139 +127,20 @@
             null
         ]
     ],
-    "cells": {
-        "0": {
-            "row": 0,
-            "col": 0,
-            "rotation": 0
-        },
-        "1": {
-            "row": 1,
-            "col": 2,
-            "rotation": 0
-        },
-        "2": {
-            "row": 1,
-            "col": 3,
-            "rotation": 0
-        },
-        "3": {
-            "row": 1,
-            "col": 4,
-            "rotation": 0
-        },
-        "4": {
-            "row": 1,
-            "col": 5,
-            "rotation": 0
-        },
-        "5": {
-            "row": 1,
-            "col": 6,
-            "rotation": 0
-        },
-        "6": {
-            "row": 1,
-            "col": 7,
-            "rotation": 0
-        },
-        "7": {
-            "row": 1,
-            "col": 7,
-            "rotation": 1
-        },
-        "8": {
-            "row": 2,
-            "col": 7,
-            "rotation": 1
-        },
-        "9": {
-            "row": 3,
-            "col": 7,
-            "rotation": 1
-        },
-        "10": {
-            "row": 4,
-            "col": 7,
-            "rotation": 1
-        },
-        "11": {
-            "row": 5,
-            "col": 7,
-            "rotation": 1
-        },
-        "13": {
-            "row": 0,
-            "col": 1,
-            "rotation": 0
-        },
-        "14": {
-            "row": 0,
-            "col": 2,
-            "rotation": 0
-        },
-        "15": {
-            "row": 0,
-            "col": 3,
-            "rotation": 0
-        },
-        "16": {
-            "row": 2,
-            "col": 0,
-            "rotation": 0
-        },
-        "17": {
-            "row": 2,
-            "col": 1,
-            "rotation": 0
-        },
-        "18": {
-            "row": 2,
-            "col": 2,
-            "rotation": 0
-        },
-        "19": {
-            "row": 2,
-            "col": 3,
-            "rotation": 0
-        },
-        "20": {
-            "row": 7,
-            "col": 0,
-            "rotation": 0
-        }
-    },
+    "cells": {},
     "cars": {
-        "21": {
-            "model": "Volvo-XC60",
-            "driver": "batuhan",
+        "0": {
+            "model": "LAMBO",
+            "driver": "BATU",
             "pos": [
-                192.59999999999997,
-                128.0
+                19.1,
+                0
             ],
             "angle": 0,
             "topspeed": 100,
             "topfuel": 100,
             "speed": 0.1,
-            "fuel": 91.54000000000045,
-            "started": true,
-            "accel_flag": false,
-            "brake_flag": false,
-            "left_flag": false,
-            "right_flag": false
-        },
-        "22": {
-            "model": "Audi-A4",
-            "driver": "ahmet",
-            "pos": [
-                138.0,
-                0
-            ],
-            "angle": 0,
-            "topspeed": 200,
-            "topfuel": 80,
-            "speed": 1.0,
-            "fuel": 75.00000000000028,
+            "fuel": 98.08999999999902,
             "started": true,
             "accel_flag": false,
             "brake_flag": false,
@@ -343,26 +148,5 @@
             "right_flag": false
         }
     },
-    "checkpoints": {
-        "16": {
-            "row": 2,
-            "col": 0,
-            "rotation": 0
-        },
-        "17": {
-            "row": 2,
-            "col": 1,
-            "rotation": 0
-        },
-        "18": {
-            "row": 2,
-            "col": 2,
-            "rotation": 0
-        },
-        "19": {
-            "row": 2,
-            "col": 3,
-            "rotation": 0
-        }
-    }
+    "checkpoints": {}
 }

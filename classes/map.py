@@ -30,7 +30,7 @@ class Map():
         row, col = pos
         if 0 <= row < self.rows or 0 <= col < self.cols:
             return self.grid[row][col]
-        raise IndexError("Position out of map bounds\n")
+        raise IndexError("Position out of map bounds.\n")
 
     def __setitem__(self, pos, cell: Cell): # Place a cell at given position
         row, col = pos
@@ -44,7 +44,7 @@ class Map():
             
             return
         
-        raise IndexError("Position out of map bounds\n")
+        raise IndexError("Position out of map bounds.\n")
 
     def __delitem__(self, pos): # Remove the cell at given position
         row, col = pos
@@ -57,7 +57,7 @@ class Map():
 
             return
         
-        raise IndexError("Position out of map bounds\n")
+        raise IndexError("Position out of map bounds.\n")
 
     def removeAllCellsWithType(self, cell_type: str): # Remove all cells of a given type from the map
         for row in range(self.rows):
@@ -108,15 +108,19 @@ class Map():
         
     def remove_cell(self, cell_id: int) -> None:
         with self.lock:
-            cell = self.cells[cell_id]
+            if cell_id in self.cells:
+                cell = self.cells[cell_id]
 
-            if isinstance(cell, Checkpoint):
-                for c in self.checkpoints:
-                    if self.checkpoints[c] == cell:
-                        del self.checkpoints[c]
-                        break
+                if isinstance(cell, Checkpoint):
+                    for c in self.checkpoints:
+                        if self.checkpoints[c] == cell:
+                            del self.checkpoints[c]
+                            break
 
-            del self.cells[cell_id]
+                del self.cells[cell_id]
+                return
+            
+            raise KeyError("Component does not exist.")
 
     def get_cell_id(self, cell: Cell) -> int:
         for c in self.cells:
@@ -134,7 +138,10 @@ class Map():
     
     def remove_car(self, car_id: int) -> None:
         with self.lock:
-            del self.cars[car_id]
+            if car_id in self.cars:
+                del self.cars[car_id]
+                return
+            raise KeyError(f"Car with id {car_id} does not exist.")
 
     def get_car_id(self, car) -> int:
         for k in self.cars:

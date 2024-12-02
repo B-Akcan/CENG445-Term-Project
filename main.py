@@ -1,4 +1,6 @@
 
+# USERIN ÇAĞIRMADIĞI FONKSİYONLARIN OUTPUTUNDAN USERI HABERDAR
+#   ETMEK İÇİN NOTİFİCATİON LAZIM
 # SERVERİ TEST ET
 # MAPTAKİ KAYNAKLARA CONCURRENCY EKLE
 
@@ -13,7 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--port")
 args = parser.parse_args()
 
-Repo().components.register("Car")
+""" Repo().components.register("Car")
 Repo().components.register("Cell")
 Repo().components.register("Decoration")
 Repo().components.register("Checkpoint")
@@ -60,7 +62,7 @@ volvo_XC60 = Repo().components.create("Car", model="Volvo-XC60", map_ref=map_ins
 map_instance.place(volvo_XC60, 128, 0)
 # map_instance.draw()
 audi_A4 = Repo().components.create("Car", model="Audi-A4", map_ref=map_instance, driver="ahmet", pos=(0,0), angle=0, topspeed=200, topfuel=80)
-map_instance.place(audi_A4, 0, 0)
+map_instance.place(audi_A4, 0, 0) """
 
 """ sub_map = map_instance.view(3, 1, 5, 5)
 sub_map.draw()
@@ -129,5 +131,5 @@ Repo.saveMap(map_id)
 map_instance = Repo.loadMap(map_id)
 map_instance.draw() """
 
-""" s = Server("0.0.0.0", int(args.port))
-s.start_server() """
+s = Server("127.0.0.1", int(args.port))
+s.start_server()
