@@ -389,6 +389,23 @@ class Agent(th.Thread): # server thread that handles user request
                                 self.socket.send(str(e).encode())
                         else:
                             self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
+        elif args[0] == "CAR_INFO":
+            if self.username == "":
+                self.socket.send(b"Please first enter your username with USER <username> command.\n")
+            else:
+                if len(args) != 3:
+                    self.socket.send(b"Please provide map id (int), car id (int).\n")
+                else:
+                    map_id = int(args[1])
+                    if map_id not in Repo._attached_maps[self.username]:
+                        self.socket.send(b"Please attach the map first.\n")
+                    else:
+                        _map = Repo._maps[map_id]
+                        car_id = int(args[2])
+                        if car_id in _map.cars:
+                            self.socket.send(_map.cars[car_id].get_car_info().encode())
+                        else:
+                            self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
         else:
             self.socket.send(b"Unknown command.\n")
 

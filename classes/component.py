@@ -247,6 +247,9 @@ class Car(Component):
             "right_flag": self.right_flag,
         }
     
+    def get_car_info(self) -> str:
+        return f"Model: {self.model}, Driver: {self.driver}, Position: ({self.pos[0]:.2f},{self.pos[1]:.2f}), Angle: {self.angle}, Speed: {self.speed:.2f}, Fuel: {self.fuel:.2f}, Top Speed: {self.topspeed}, Top Fuel: {self.topfuel}, Is Started: {self.started}\n"
+    
 class Cell(Component):
     @classmethod
     def desc(cls) -> str:

@@ -1,42 +1,18 @@
 {
     "cols": 10,
     "rows": 10,
-    "cellsize": 1000,
+    "cellsize": 100,
     "bgcolor": "GREEN",
     "game_mode": true,
-    "start_time": 1733228442.2304976,
+    "start_time": 1733232522.9832304,
     "grid": [
         [
-            {
-                "row": 0,
-                "col": 0,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 1,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 2,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 3,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 4,
-                "rotation": 0
-            },
-            {
-                "row": 0,
-                "col": 5,
-                "rotation": 0
-            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             null,
             null,
             null,
@@ -151,69 +127,20 @@
             null
         ]
     ],
-    "cells": {
-        "2": {
-            "row": 0,
-            "col": 0,
-            "rotation": 0
-        },
-        "3": {
-            "row": 0,
-            "col": 1,
-            "rotation": 0
-        },
-        "4": {
-            "row": 0,
-            "col": 2,
-            "rotation": 0
-        },
-        "5": {
-            "row": 0,
-            "col": 4,
-            "rotation": 0
-        },
-        "6": {
-            "row": 0,
-            "col": 5,
-            "rotation": 0
-        },
-        "7": {
-            "row": 0,
-            "col": 3,
-            "rotation": 0
-        }
-    },
+    "cells": {},
     "cars": {
         "0": {
-            "model": "PORSCHE",
+            "model": "LAMBO",
             "driver": "BATU",
             "pos": [
-                0,
-                0
+                314.6467529817255,
+                203.6467529817254
             ],
-            "angle": 0,
+            "angle": 315,
             "topspeed": 100,
-            "topfuel": 100000,
-            "speed": 0,
-            "fuel": 100000.0,
-            "started": true,
-            "accel_flag": false,
-            "brake_flag": false,
-            "left_flag": false,
-            "right_flag": false
-        },
-        "1": {
-            "model": "LAMBO",
-            "driver": "AHMET",
-            "pos": [
-                394.5398561647386,
-                0
-            ],
-            "angle": 135,
-            "topspeed": 80,
-            "topfuel": 100000,
+            "topfuel": 100,
             "speed": 0.0,
-            "fuel": 98402.45799999706,
+            "fuel": 60.10000000000038,
             "started": false,
             "accel_flag": false,
             "brake_flag": false,
@@ -221,16 +148,5 @@
             "right_flag": false
         }
     },
-    "checkpoints": {
-        "4": {
-            "row": 0,
-            "col": 2,
-            "rotation": 0
-        },
-        "6": {
-            "row": 0,
-            "col": 5,
-            "rotation": 0
-        }
-    }
+    "checkpoints": {}
 }
