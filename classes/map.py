@@ -19,51 +19,85 @@ class Map():
         self.bgcolor: str = bgcolor
         self.game_mode: bool = False
         self.start_time = 0.0
-        self.lock: th.Lock = th.Lock()
+
+        self.lock: th.RLock = th.RLock()
+        self.can_use_grid: th.Condition = th.Condition(self.lock)
+        self.can_use_cells: th.Condition = th.Condition(self.lock)
+        self.can_use_cars: th.Condition = th.Condition(self.lock)
+        self.can_use_checkpoints: th.Condition = th.Condition(self.lock)
+
+        self.grid_users = 0
+        self.cells_users = 0
+        self.cars_users = 0
+        self.checkpoints_users = 0
 
         self.grid: list[list[Cell]] = [[None for _ in range(cols)] for _ in range(rows)]
         self.cells: dict[int, Cell] = {} # dict[int(cell id), Cell]
         self.cars: dict[int, Car] = {}  # dict[int(car id), Car]
-        self.checkpoints: dict[int, Checkpoint] = {} # dict[int(checkpoint id), Checkpoint]
+        self.checkpoints: dict[int, Checkpoint] = {} # dict[int(cell id), Checkpoint]
 
     def __getitem__(self, pos): # Get the cell at given position
-        row, col = pos
-        if 0 <= row < self.rows or 0 <= col < self.cols:
-            return self.grid[row][col]
+        x, y = pos
+        if 0 <= y < self.rows and 0 <= x < self.cols:
+            if self.grid[y][x] != None:
+                return self.grid[y][x]
+            raise ValueError(f"There is no component at position ({x},{y}).\n")
         raise IndexError("Position out of map bounds.\n")
 
     def __setitem__(self, pos, cell: Cell): # Place a cell at given position
-        row, col = pos
-        if 0 <= row < self.rows or 0 <= col < self.cols:
-            self.grid[row][col] = cell
-            cell.row = row
-            cell.col = col
-            cell.rotation = 0
+        with self.lock:
+            while self.grid_users > 0:
+                self.can_use_grid.wait()
+            self.grid_users += 1
 
-            self.add_cell(cell)
+            x, y = pos
+            if 0 <= y < self.rows and 0 <= x < self.cols:
+                if self.grid[y][x] == None:
+                    self.grid[y][x] = cell
+                    cell.row = y
+                    cell.col = x
+                    cell.rotation = 0
+
+                    self.add_cell(cell)
+
+                    self.grid_users -= 1
+                    self.can_use_grid.notify_all()
+                    return
+                
+                self.grid_users -= 1
+                self.can_use_grid.notify_all()
+                raise ValueError(f"There is already a component at position ({x},{y}).\n")
             
-            return
-        
-        raise IndexError("Position out of map bounds.\n")
+            self.grid_users -= 1
+            self.can_use_grid.notify_all()
+            raise IndexError("Position out of map bounds.\n")
 
     def __delitem__(self, pos): # Remove the cell at given position
-        row, col = pos
-        if 0 <= row < self.rows or 0 <= col < self.cols:
-            cell = self.grid[row][col]
-            self.grid[row][col] = None
+        with self.lock:
+            while self.grid_users > 0:
+                self.can_use_grid.wait()
+            self.grid_users += 1
 
-            cell_id = self.get_cell_id(cell)
-            self.remove_cell(cell_id)
+            x, y = pos
+            if 0 <= y < self.rows and 0 <= x < self.cols:
+                if self.grid[y][x] != None:
+                    cell = self.grid[y][x]
+                    self.grid[y][x] = None
 
-            return
-        
-        raise IndexError("Position out of map bounds.\n")
+                    cell_id = self.get_cell_id(cell)
+                    self.remove_cell(cell_id)
 
-    def removeAllCellsWithType(self, cell_type: str): # Remove all cells of a given type from the map
-        for row in range(self.rows):
-            for col in range(self.cols):
-                if type(self.grid[row][col]) == cell_type:
-                    self.grid[row][col] = None
+                    self.grid_users -= 1
+                    self.can_use_grid.notify_all()
+                    return
+                
+                self.grid_users -= 1
+                self.can_use_grid.notify_all()
+                raise ValueError(f"There is no component at position ({x},{y}).\n")
+            
+            self.grid_users -= 1
+            self.can_use_grid.notify_all()
+            raise IndexError("Position out of map bounds.\n")
 
     def getxy(self, x: int, y: int): # Get the component based on pixel position
         row = y // self.cellsize
@@ -71,20 +105,28 @@ class Map():
         return self.grid[row][col]
 
     def place(self, obj, x, y): # Place a component at a pixel position
-        row = y // self.cellsize
-        col = x // self.cellsize
+        with self.lock:
+            while self.grid_users > 0:
+                self.can_use_grid.wait()
+            self.grid_users += 1
 
-        if isinstance(obj, Cell):
-            self.grid[row][col] = obj
-            obj.row = row
-            obj.col = col
-            obj.rotation = 0
+            row = y // self.cellsize
+            col = x // self.cellsize
 
-            self.add_cell(obj)
+            if isinstance(obj, Cell):
+                self.grid[row][col] = obj
+                obj.row = row
+                obj.col = col
+                obj.rotation = 0
 
-        elif obj.__class__.__name__ == "Car":
-            obj.pos = (x, y)
-            return self.add_car(obj)
+                self.add_cell(obj)
+
+            elif obj.__class__.__name__ == "Car":
+                obj.pos = (x, y)
+                self.add_car(obj)
+            
+            self.grid_users -= 1
+            self.can_use_grid.notify_all()
             
     def view(self, x, y, width, height): # Return a view (subsection) of the map with given width and height
         view_map = Map(height, width, self.cellsize, self.bgcolor)
@@ -96,18 +138,41 @@ class Map():
     
     def add_cell(self, cell) -> None:
         with self.lock:
+            while self.cells_users > 0:
+                    self.can_use_cells.wait()
+            self.cells_users += 1
+
             if cell not in list(self.cells.values()):
                 cell_id = ComponentIdCounter().get()
                 self.cells[cell_id] = cell
 
                 if isinstance(cell, Checkpoint):
                     self.checkpoints[cell_id] = cell
+                    
+                    while self.cars_users > 0:
+                        self.can_use_cars.wait()
+                    self.cars_users += 1
 
+                    for car in self.cars:
+                        self.cars[car].checkpoint_times += [None]
+
+                    self.cars_users -= 1
+                    self.can_use_cars.notify_all()
+
+                self.cells_users -= 1
+                self.can_use_cells.notify_all()
                 return cell_id
+            
+            self.cells_users -= 1
+            self.can_use_cells.notify_all()
             return -1
         
     def remove_cell(self, cell_id: int) -> None:
         with self.lock:
+            while self.cells_users > 0:
+                    self.can_use_cells.wait()
+            self.cells_users += 1
+
             if cell_id in self.cells:
                 cell = self.cells[cell_id]
 
@@ -117,9 +182,26 @@ class Map():
                             del self.checkpoints[c]
                             break
 
+                    while self.cars_users > 0:
+                        self.can_use_cars.wait()
+                    self.cars_users += 1
+
+                    len_cp = len(self.checkpoints)
+                    for car in self.cars:
+                        self.cars[car].checkpoint_times = [None] * len_cp
+                        self.cars[car].last_checkpoint = -1
+
+                    self.cars_users -= 1
+                    self.can_use_cars.notify_all()
+
                 del self.cells[cell_id]
+
+                self.cells_users -= 1
+                self.can_use_cells.notify_all()
                 return
             
+            self.cells_users -= 1
+            self.can_use_cells.notify_all()
             raise KeyError("Component does not exist.")
 
     def get_cell_id(self, cell: Cell) -> int:
@@ -130,17 +212,37 @@ class Map():
             
     def add_car(self, car) -> None:
         with self.lock:
+            while self.cars_users > 0:
+                    self.can_use_cars.wait()
+            self.cars_users += 1
+
             if car not in list(self.cars.values()):
                 car_id = ComponentIdCounter().get()
                 self.cars[car_id] = car
+
+                self.cars_users -= 1
+                self.can_use_cars.notify_all()
                 return car_id
+            
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
             return -1
     
     def remove_car(self, car_id: int) -> None:
         with self.lock:
+            while self.cars_users > 0:
+                self.can_use_cars.wait()
+            self.cars_users += 1
+
             if car_id in self.cars:
                 del self.cars[car_id]
+
+                self.cars_users -= 1
+                self.can_use_cars.notify_all()
                 return
+            
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
             raise KeyError(f"Car with id {car_id} does not exist.")
 
     def get_car_id(self, car) -> int:
@@ -148,6 +250,72 @@ class Map():
             if self.cars[k] == car:
                 return k
         return -1
+    
+    def start_car(self, car_id: int) -> None:
+        with self.lock:
+            while self.cars_users > 0:
+                self.can_use_cars.wait()
+            self.cars_users += 1
+
+            self.cars[car_id].start()
+
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
+
+    def stop_car(self, car_id: int) -> None:
+        with self.lock:
+            while self.cars_users > 0:
+                self.can_use_cars.wait()
+            self.cars_users += 1
+
+            self.cars[car_id].stop()
+
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
+
+    def accel_car(self, car_id: int) -> None:
+        with self.lock:
+            while self.cars_users > 0:
+                self.can_use_cars.wait()
+            self.cars_users += 1
+
+            self.cars[car_id].accel()
+
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
+
+    def brake_car(self, car_id: int) -> None:
+        with self.lock:
+            while self.cars_users > 0:
+                self.can_use_cars.wait()
+            self.cars_users += 1
+
+            self.cars[car_id].brake()
+
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
+
+    def right_car(self, car_id: int) -> None:
+        with self.lock:
+            while self.cars_users > 0:
+                self.can_use_cars.wait()
+            self.cars_users += 1
+
+            self.cars[car_id].right()
+
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
+
+    def left_car(self, car_id: int) -> None:
+        with self.lock:
+            while self.cars_users > 0:
+                self.can_use_cars.wait()
+            self.cars_users += 1
+
+            self.cars[car_id].left()
+
+            self.cars_users -= 1
+            self.can_use_cars.notify_all()
     
     def get_checkpoint_order(self, checkpoint: Checkpoint) -> int:
         i = 0
@@ -158,32 +326,34 @@ class Map():
             i += 1
         return -1
 
-    def draw(self) -> None:
+    def draw(self) -> str:
         """Sort cars by laps and last visited checkpoints.
             Draw the map on the command line.
             Print ordered car laps, last checkpoint, time elapsed."""
-        
-        with self.lock:
-            car_ids = self.sort_cars()
 
-            for row in range(self.rows):
-                for col in range(self.cols):
-                    cell = self.grid[row][col]
-                    if cell:
-                        print(cell.draw(), end="")
-                    else:
-                        print(".", end="")
-                print(end="\n")
+        car_ids = self.sort_cars()
+        buf = ""
 
-            print("Car Rankings:")
-            for i in car_ids:
-                car = self.cars[i]
-                checkpoint = car.last_checkpoint
-                if checkpoint != -1:
-                    time_elapsed = time.time() - car.checkpoint_times[checkpoint]
-                    print(f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time elapsed since last checkpoint: {time_elapsed:.2f} s")
+        for row in range(self.rows):
+            for col in range(self.cols):
+                cell = self.grid[row][col]
+                if cell:
+                    buf += cell.draw()
                 else:
-                    print(f"{car.model}: {car.lap_count} lap(s), last checkpoint: None")
+                    buf += "."
+            buf += "\n"
+
+        buf += "Car Rankings:\n"
+        for i in car_ids:
+            car = self.cars[i]
+            checkpoint = car.last_checkpoint
+            if checkpoint != -1:
+                time_elapsed = time.time() - car.checkpoint_times[checkpoint]
+                buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time elapsed since last checkpoint: {time_elapsed:.2f} s\n"
+            else:
+                buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: None\n"
+            
+        return buf
 
     def sort_cars(self):
         len_cars = len(self.cars)
@@ -217,15 +387,17 @@ class Map():
         return car_ids
                 
     def start(self) -> None:
-        if not self.game_mode: 
-            self.game_mode = True
-            self.start_time = time.time()
-            game_thread = th.Thread(target=self.game_loop)
-            game_thread.start()
+        with self.lock:
+            if not self.game_mode: 
+                self.game_mode = True
+                self.start_time = time.time()
+                game_thread = th.Thread(target=self.game_loop)
+                game_thread.start()
 
     def stop(self) -> None:
-        self.game_mode = False
-        self.start_time = 0.0
+        with self.lock:
+            self.game_mode = False
+            self.start_time = 0.0
 
     def game_loop(self) -> None:
         tick_interval = 0.1

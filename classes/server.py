@@ -90,8 +90,9 @@ class Agent(th.Thread): # server thread that handles user request
                     if map_id not in Repo._attached_maps[self.username]:
                         self.socket.send(b"Please attach the map first.\n")
                     else:
+                        Repo.saveMap(map_id)
                         Repo._maps[map_id].stop()
-                        self.socket.send(b"Game stopped.\n")
+                        self.socket.send(b"Game saved and stopped.\n")
         elif args[0] == "SAVE":
             if self.username == "":
                 self.socket.send(b"Please first enter your username with USER <username> command.\n")
@@ -104,7 +105,7 @@ class Agent(th.Thread): # server thread that handles user request
                         self.socket.send(b"Please attach the map first.\n")
                     else:
                         Repo.saveMap(map_id)
-                        self.socket.send(b"Map saved.\n")
+                        self.socket.send(b"Game saved.\n")
         elif args[0] == "CREATE_MAP":
             if self.username == "":
                 self.socket.send(b"Please first enter your username with USER <username> command.\n")
@@ -127,6 +128,19 @@ class Agent(th.Thread): # server thread that handles user request
                     map_id = int(args[1])
                     Repo.delete(map_id)
                     self.socket.send(f"Map with id {map_id} was detached from all users and deleted.\n")
+        elif args[0] == "DRAW_MAP":
+            if self.username == "":
+                self.socket.send(b"Please first enter your username with USER <username> command.\n")
+            else:
+                if len(args) != 2:
+                    self.socket.send(b"Please provide map id.\n")
+                else:
+                    map_id = int(args[1])
+                    if map_id not in Repo._attached_maps[self.username]:
+                        self.socket.send(b"Please attach the map first.\n")
+                    else:
+                        _map = Repo._maps[map_id]
+                        self.socket.send(_map.draw().encode())
         elif args[0] == "REGISTER_COMP":
             if self.username == "":
                 self.socket.send(b"Please first enter your username with USER <username> command.\n")
@@ -191,8 +205,11 @@ class Agent(th.Thread): # server thread that handles user request
                     else:
                         x, y = map(int, args[2:4])
                         _map = Repo._maps[map_id]
-                        _map[(x, y)].rotation = (_map[(x, y)].rotation + 1) % 4
-                        self.socket.send(f"Component at ({x},{y}) of map {map_id} was rotated.\n".encode())
+                        try:
+                            _map[(x, y)].rotation = (_map[(x, y)].rotation + 1) % 4
+                            self.socket.send(f"Component at ({x},{y}) of map {map_id} was rotated.\n".encode())
+                        except ValueError as e:
+                            self.socket.send(str(e).encode())
         elif args[0] == "DELETE_COMP":
             if self.username == "":
                 self.socket.send(b"Please first enter your username with USER <username> command.\n")
@@ -229,8 +246,9 @@ class Agent(th.Thread): # server thread that handles user request
                             model, driver = args[2:4]
                             _map = Repo._maps[map_id]
                             car = Repo().components.create("Car", model=model, map_ref=_map, driver=driver, pos=(x,y), angle=0, topspeed=topspeed, topfuel=topfuel)
-                            car_id = _map.place(car, x, y)
-                            self.socket.send(f"Car created with id {car_id}.\n".encode())
+                            _map.place(car, x, y)
+                            car_id = _map.get_car_id(car)
+                            self.socket.send(f"Car created with id {car_id} on map with id {map_id}.\n".encode())
                         except ValueError as e:
                             self.socket.send(str(e).encode())
         elif args[0] == "DELETE_CAR":
@@ -265,8 +283,8 @@ class Agent(th.Thread): # server thread that handles user request
                         _map = Repo._maps[map_id]
                         car_id = int(args[2])
                         if car_id in _map.cars:
-                            _map.cars[car_id].start()
-                            self.socket.send(f"Car with {car_id} started.\n".encode())
+                            _map.start_car(car_id)
+                            self.socket.send(f"Car with id {car_id} started.\n".encode())
                         else:
                             self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
         elif args[0] == "STOP_CAR":
@@ -283,8 +301,8 @@ class Agent(th.Thread): # server thread that handles user request
                         _map = Repo._maps[map_id]
                         car_id = int(args[2])
                         if car_id in _map.cars:
-                            _map.cars[car_id].stop()
-                            self.socket.send(f"Car with {car_id} stopped.\n".encode())
+                            _map.stop_car(car_id)
+                            self.socket.send(f"Car with id {car_id} stopped.\n".encode())
                         else:
                             self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
         elif args[0] == "ACCEL_CAR":
@@ -302,8 +320,8 @@ class Agent(th.Thread): # server thread that handles user request
                         car_id = int(args[2])
                         if car_id in _map.cars:
                             try:
-                                _map.cars[car_id].accel()
-                                self.socket.send(f"Car with {car_id} accelerated.\n".encode())
+                                _map.accel_car(car_id)
+                                self.socket.send(f"Car with id {car_id} accelerated.\n".encode())
                             except ValueError as e:
                                 self.socket.send(str(e).encode())
                         else:
@@ -323,8 +341,8 @@ class Agent(th.Thread): # server thread that handles user request
                         car_id = int(args[2])
                         if car_id in _map.cars:
                             try:
-                                _map.cars[car_id].brake()
-                                self.socket.send(f"Car with {car_id} braked.\n".encode())
+                                _map.brake_car(car_id)
+                                self.socket.send(f"Car with id {car_id} braked.\n".encode())
                             except ValueError as e:
                                 self.socket.send(str(e).encode())
                         else:
@@ -344,8 +362,8 @@ class Agent(th.Thread): # server thread that handles user request
                         car_id = int(args[2])
                         if car_id in _map.cars:
                             try:
-                                _map.cars[car_id].left()
-                                self.socket.send(f"Car with {car_id} turned left.\n".encode())
+                                _map.left_car(car_id)
+                                self.socket.send(f"Car with id {car_id} turned left.\n".encode())
                             except ValueError as e:
                                 self.socket.send(str(e).encode())
                         else:
@@ -365,8 +383,8 @@ class Agent(th.Thread): # server thread that handles user request
                         car_id = int(args[2])
                         if car_id in _map.cars:
                             try:
-                                _map.cars[car_id].right()
-                                self.socket.send(f"Car with {car_id} turned right.\n".encode())
+                                _map.right_car(car_id)
+                                self.socket.send(f"Car with id {car_id} turned right.\n".encode())
                             except ValueError as e:
                                 self.socket.send(str(e).encode())
                         else:

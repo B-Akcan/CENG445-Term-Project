@@ -1,11 +1,3 @@
-
-# USERIN ÇAĞIRMADIĞI FONKSİYONLARIN OUTPUTUNDAN USERI HABERDAR
-#   ETMEK İÇİN NOTİFİCATİON LAZIM
-# SERVERİ TEST ET
-# MAPTAKİ KAYNAKLARA CONCURRENCY EKLE
-
-
-
 from classes.repo import Repo
 from classes.server import Server
 import argparse

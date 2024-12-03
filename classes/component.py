@@ -178,26 +178,32 @@ class Car(Component):
 
     def tick(self) -> None:
         if not self.started:
-            raise ValueError(f"Car '{self.model}' is not started")
+            print(f"Car '{self.model}' is not started")
+            return
         if self.fuel <= 0:
-            raise ValueError(f"Car '{self.model}' is out of fuel")
+            print(f"Car '{self.model}' is out of fuel")
+            return
 
         # Set speed based on flags
         if self.accel_flag and self.speed < self.topspeed:
-            self.speed += 1
+            self.speed += 3
         if self.brake_flag and self.speed > 0:
-            self.speed -= 1
+            self.speed -= 3
 
         # Set angle based on flags
         if self.left_flag:
             self.angle += 45
+            if self.angle >= 360:
+                self.angle -= 360
         if self.right_flag:
             self.angle -= 45
+            if self.angle < 0:
+                self.angle += 360
 
         # Update position based on speed and angle
         rad_angle = math.radians(self.angle)
         new_pos_x = self.pos[0] + self.speed * math.cos(rad_angle)
-        new_pos_y = self.pos[1] + self.speed * math.sin(rad_angle)
+        new_pos_y = self.pos[1] - self.speed * math.sin(rad_angle)
         self.pos = (clamp(new_pos_x, 0, self.map.cols * self.map.cellsize),
                     clamp(new_pos_y, 0, self.map.rows * self.map.cellsize))
 
@@ -208,12 +214,13 @@ class Car(Component):
 
         # Interact with the current cell
         grid_pos = (int(self.pos[0] // self.map.cellsize), int(self.pos[1] // self.map.cellsize))
-        cell = self.map[grid_pos] if (0 <= grid_pos[0] < self.map.rows and 0 <= grid_pos[1] < self.map.cols) else None
+        try:
+            cell = self.map[grid_pos]
+        except:
+            cell = None
 
         if cell and isinstance(cell, Cell):
             cell.interact(self, *self.pos)
-        else:
-            self.speed = 0.1
 
         # Reset flags after processing
         self.accel_flag = False
@@ -221,7 +228,7 @@ class Car(Component):
         self.left_flag = False
         self.right_flag = False
 
-        print(f"{self.model} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.1f} and fuel {self.fuel:.2f}.")
+        print(f"{self.model} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.2f} and fuel {self.fuel:.2f}.")
 
     def to_dict(self): # excludes map_ref, to prevent circular reference
         return {
@@ -354,7 +361,7 @@ class Mud(Obstacle):
         return "M"
     
     def interact(self, car, y: float, x: float):
-        car.speed = max(0, car.speed - 3)
+        car.speed = max(0, car.speed - 5)
 
 class Ice(Obstacle):
     @classmethod
@@ -399,7 +406,7 @@ class Booster(Bonus):
         return "B"
     
     def interact(self, car, y: float, x: float):
-        car.speed = min(car.topspeed, car.speed + 3)
+        car.speed = min(car.topspeed, car.speed + 5)
 
 class Refuel(Bonus):
     @classmethod
@@ -429,7 +436,7 @@ class Road(Cell):
         pass
     
     def interact(self, car, y, x):
-        car.speed = max(0, car.speed - 0.5)  # due to friction
+        car.speed = max(0, car.speed - 0.01)  # due to friction
     
 class StraightRoad(Road):
     @classmethod
