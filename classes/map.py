@@ -24,12 +24,10 @@ class Map():
         self.can_use_grid: th.Condition = th.Condition(self.lock)
         self.can_use_cells: th.Condition = th.Condition(self.lock)
         self.can_use_cars: th.Condition = th.Condition(self.lock)
-        self.can_use_checkpoints: th.Condition = th.Condition(self.lock)
 
         self.grid_users = 0
         self.cells_users = 0
         self.cars_users = 0
-        self.checkpoints_users = 0
 
         self.grid: list[list[Cell]] = [[None for _ in range(cols)] for _ in range(rows)]
         self.cells: dict[int, Cell] = {} # dict[int(cell id), Cell]
