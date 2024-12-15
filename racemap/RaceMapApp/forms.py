@@ -12,3 +12,8 @@ class MapCreateForm(forms.Form):
     num_rows = forms.IntegerField(min_value=3, max_value=20)
     cellsize = forms.IntegerField(min_value=10, max_value=1000)
     bg_color = forms.CharField()
+
+class ComponentCreateForm(forms.Form):
+    comp_type = forms.CharField(max_length=20)
+    x = forms.IntegerField(min_value=0)
+    y = forms.IntegerField(min_value=0)

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Map {{ map.id }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="map_id" value="{{ map.id }}">
+    <input type="submit" name="submit" value="Create Component">
+</form>
+<table>
+    <tbody>
+        {% with ''|center:map.num_rows as range1 %}
+            {% for _ in range1 %}
+                <tr>
+                    {% with ''|center:map.num_cols as range2 %}
+                        {% for _ in range2 %}
+                            <td>A</td>
+                        {% endfor %}
+                    {% endwith %}
+                </tr>
+            {% endfor %}
+        {% endwith %}
+    </tbody>
+</table>
+{% endblock %}

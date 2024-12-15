@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from RaceMapApp.views import index, register, login_view, logout_view
+from RaceMapApp.views import index, register, login_view, logout_view, components
 from classes.server import Server
 from multiprocessing import Process
 

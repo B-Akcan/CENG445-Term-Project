@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block style %}
+<style>
+    table {
+        width: 50%;
+    }
+    table, thead, tbody, td, th {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    th, td {
+        text-align: center;
+    }
+    input {
+        margin: 3px;
+    }
+    form {
+        margin-bottom: 0px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <h2>Attached maps</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Number of columns</th>
+                <th>Number of rows</th>
+                <th>Cell size</th>
+                <th>Background color</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for map in attached_maps %}
+                <tr>
+                    <td>{{ map.id }}</td>
+                    <td>{{ map.num_cols }}</td>
+                    <td>{{ map.num_rows }}</td>
+                    <td>{{ map.cellsize }}</td>
+                    <td>{{ map.bg_color }}</td>
+                    <td>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="map_id" value="{{ map.id }}">
+                            <input type="submit" name="submit" value="View">
+                            <input type="submit" name="submit" value="Detach">
+                            <input type="submit" name="submit" value="Delete">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Unattached maps</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Number of columns</th>
+                <th>Number of rows</th>
+                <th>Cell size</th>
+                <th>Background color</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for map in unattached_maps %}
+                <tr>
+                    <td>{{ map.id }}</td>
+                    <td>{{ map.num_cols }}</td>
+                    <td>{{ map.num_rows }}</td>
+                    <td>{{ map.cellsize }}</td>
+                    <td>{{ map.bg_color }}</td>
+                    <td>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="map_id" value="{{ map.id }}">
+                            <input type="submit" name="submit" value="Attach">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

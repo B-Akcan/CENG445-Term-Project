@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block style %}
+<style>
+    div {
+        display: flex;
+    }
+    span {
+        display: inline-block;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<h2>Registered components</h2>
+<ul>
+    {% for comp in registered_comps %}
+        <li>
+            <div>
+                <span>{{ comp.type }}</span>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="comp_type" value="{{ comp.type }}">
+                    <input type="submit" name="submit" value="Unregister">
+                </form>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+
+<h2>Unregistered components</h2>
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Register All">
+</form>
+<ul>
+    {% for comp in unregistered_comps %}
+        <li>
+            <div>
+                <span>{{ comp.type }}</span>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="comp_type" value="{{ comp.type }}">
+                    <input type="submit" name="submit" value="Register">
+                </form>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
