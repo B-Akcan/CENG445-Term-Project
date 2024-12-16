@@ -17,3 +17,7 @@ class ComponentCreateForm(forms.Form):
     comp_type = forms.CharField(max_length=20)
     x = forms.IntegerField(min_value=0)
     y = forms.IntegerField(min_value=0)
+
+class ComponentRotateDeleteForm(forms.Form):
+    x = forms.IntegerField(min_value=0)
+    y = forms.IntegerField(min_value=0)

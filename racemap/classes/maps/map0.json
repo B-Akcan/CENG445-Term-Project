@@ -1,152 +1,28 @@
 {
-    "cols": 10,
-    "rows": 10,
-    "cellsize": 100,
-    "bgcolor": "GREEN",
+    "cols": 3,
+    "rows": 3,
+    "cellsize": 10,
+    "bgcolor": "green",
     "game_mode": true,
-    "start_time": 1733232522.9832304,
+    "start_time": 1734356802.3362968,
     "grid": [
         [
             null,
             null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
             null
         ],
         [
             null,
             null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
             null
         ],
         [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
             null,
             null,
             null
         ]
     ],
     "cells": {},
-    "cars": {
-        "0": {
-            "model": "LAMBO",
-            "driver": "BATU",
-            "pos": [
-                314.6467529817255,
-                203.6467529817254
-            ],
-            "angle": 315,
-            "topspeed": 100,
-            "topfuel": 100,
-            "speed": 0.0,
-            "fuel": 60.10000000000038,
-            "started": false,
-            "accel_flag": false,
-            "brake_flag": false,
-            "left_flag": false,
-            "right_flag": false
-        }
-    },
+    "cars": {},
     "checkpoints": {}
 }

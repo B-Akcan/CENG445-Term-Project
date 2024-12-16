@@ -2,50 +2,57 @@
 
 {% block style %}
 <style>
-    div {
-        display: flex;
+    table {
+        width: 20%;
+        border: 1px solid black;
+        border-collapse: collapse;
     }
-    span {
-        display: inline-block;
-        margin-right: 10px;
+    td {
+        text-align: center;
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    form {
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
 </style>
 {% endblock %}
 
 {% block body %}
 <h2>Registered components</h2>
-<ul>
+<table>
     {% for comp in registered_comps %}
-        <li>
-            <div>
-                <span>{{ comp.type }}</span>
+        <tr>
+            <td>{{ comp.type }}</td>
+            <td>
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="comp_type" value="{{ comp.type }}">
                     <input type="submit" name="submit" value="Unregister">
                 </form>
-            </div>
-        </li>
+            </td>
+        </tr>
     {% endfor %}
-</ul>
+</table>
 
 <h2>Unregistered components</h2>
 <form method="post">
     {% csrf_token %}
     <input type="submit" name="submit" value="Register All">
 </form>
-<ul>
+<table>
     {% for comp in unregistered_comps %}
-        <li>
-            <div>
-                <span>{{ comp.type }}</span>
+        <tr>
+            <td>{{ comp.type }}</td>
+            <td>
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="comp_type" value="{{ comp.type }}">
                     <input type="submit" name="submit" value="Register">
                 </form>
-            </div>
-        </li>
+            </td>
+        </tr>
     {% endfor %}
-</ul>
+</table>
 {% endblock %}

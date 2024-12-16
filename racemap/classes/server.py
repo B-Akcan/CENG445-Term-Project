@@ -12,11 +12,11 @@ class Server:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.host, self.port))
         s.listen(5)
-        print(f"Game server started on {self.host}:{self.port}")
+        print(f"----------------- Game server started on {self.host}:{self.port} -----------------")
 
         while True:
             ns, addr = s.accept()
-            print(f"Game server connection established with {addr}")
+            print(f"----------------- Game server connection established with {addr} -----------------")
             agent = Agent(socket=ns)
             agent.start()
 

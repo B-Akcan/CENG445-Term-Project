@@ -6,20 +6,19 @@
     {% csrf_token %}
     <input type="hidden" name="map_id" value="{{ map.id }}">
     <input type="submit" name="submit" value="Create Component">
+    <input type="submit" name="submit" value="Rotate Component">
+    <input type="submit" name="submit" value="Delete Component">
+    <br/>
+    <br/>
+    <input type="submit" name="submit" value="Start Game">
+    <input type="submit" name="submit" value="Stop Game">
+    <input type="submit" name="submit" value="Save Game">
 </form>
-<table>
-    <tbody>
-        {% with ''|center:map.num_rows as range1 %}
-            {% for _ in range1 %}
-                <tr>
-                    {% with ''|center:map.num_cols as range2 %}
-                        {% for _ in range2 %}
-                            <td>A</td>
-                        {% endfor %}
-                    {% endwith %}
-                </tr>
-            {% endfor %}
-        {% endwith %}
-    </tbody>
-</table>
+<div style="position: relative;">
+    {% for comp in comps %}
+        <div style="position:absolute; left: calc(20px * {{comp.x}}); top: calc(20px * {{comp.y}});">
+            {{comp.type.type.0}}
+        </div>
+    {% endfor %}
+</div>
 {% endblock %}

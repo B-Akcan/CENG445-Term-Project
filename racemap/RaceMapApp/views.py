@@ -4,7 +4,7 @@ from django.contrib.auth import  authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import RegisterForm, MapCreateForm, ComponentCreateForm
+from .forms import RegisterForm, MapCreateForm, ComponentCreateForm, ComponentRotateDeleteForm
 from socket import socket, AF_INET, SOCK_STREAM
 from .models import Map, ComponentRegistry, Component
 
@@ -207,9 +207,37 @@ def map_view(request, map_id):
             return redirect(f"/racemap/maps/{map_id}/rotate_component")
         elif request.POST["submit"] == "Delete Component":
             return redirect(f"/racemap/maps/{map_id}/delete_component")
+        elif request.POST["submit"] == "Start Game":
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"START_GAME {map_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Stop Game":
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"STOP_GAME {map_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Save Game":
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"SAVE {map_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+            messages.success(request, reply)
 
     _map = User.objects.get(username=request.user).maps.get(id=map_id)
-    return render(request, "map.html", {"map": _map})
+    comps = Component.objects.filter(map=map_id).order_by("x", "y")
+    return render(request, "map.html", {"map": _map, "comps": comps})
 
 @login_required
 def create_component(request, map_id):
@@ -228,13 +256,14 @@ def create_component(request, map_id):
             reply = s.recv(1024).decode()
             s.close()
 
-            if "is not registered" in reply or "Position out of map bounds." in reply:
+            if "is not registered" in reply or "Position out of map bounds." in reply or "There is already a component" in reply:
                 messages.error(request, reply)
             else:
                 _map = Map.objects.get(id=map_id)
                 _type = ComponentRegistry.objects.get(type=comp_type)
                 Component.objects.create(map=_map, type=_type, x=x, y=y)
                 messages.success(request, reply)
+                return redirect(f"/racemap/maps/{map_id}")
         else:
             error_string = ' '.join([' '.join(x for x in l) for l in list(form.errors.values())])
             messages.error(request, error_string)
@@ -243,8 +272,60 @@ def create_component(request, map_id):
 
 @login_required
 def rotate_component(request, map_id):
-    return render(request, "rotate_component.html")
+    if request.method == "POST":
+        form = ComponentRotateDeleteForm(request.POST)
+        if form.is_valid():
+            x = form.cleaned_data["x"]
+            y = form.cleaned_data["y"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"ROTATE_COMP {map_id} {x} {y}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            if "Position out of map bounds." in reply or "There is no component at position" in reply:
+                messages.error(request, reply)
+            else:
+                _map = Map.objects.get(id=map_id)
+                comp = Component.objects.get(map=_map, x=x, y=y)
+                comp.rotation = (comp.rotation + 1) % 4
+                comp.save()
+                messages.success(request, reply)
+                return redirect(f"/racemap/maps/{map_id}")
+        else:
+            error_string = ' '.join([' '.join(x for x in l) for l in list(form.errors.values())])
+            messages.error(request, error_string)
+
+    return render(request, "rotate_component.html", {"form": ComponentRotateDeleteForm})
 
 @login_required
 def delete_component(request, map_id):
-    return render(request, "delete_component.html")
+    if request.method == "POST":
+        form = ComponentRotateDeleteForm(request.POST)
+        if form.is_valid():
+            x = form.cleaned_data["x"]
+            y = form.cleaned_data["y"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"DELETE_COMP {map_id} {x} {y}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            if "Component deleted." not in reply:
+                messages.error(request, reply)
+            else:
+                _map = Map.objects.get(id=map_id)
+                Component.objects.get(map=_map, x=x, y=y).delete()
+                messages.success(request, reply)
+                return redirect(f"/racemap/maps/{map_id}")
+        else:
+            error_string = ' '.join([' '.join(x for x in l) for l in list(form.errors.values())])
+            messages.error(request, error_string)
+
+    return render(request, "delete_component.html", {"form": ComponentRotateDeleteForm})
