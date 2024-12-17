@@ -1,5 +1,6 @@
 import socket
 import threading as th
+import json
 from .repo import Repo
 
 class Server:
@@ -241,19 +242,19 @@ class Agent(th.Thread): # server thread that handles user request
                 if self.username == "":
                     self.socket.send(b"Please first enter your username with USER <username> command.\n")
                 else:
-                    if len(args) != 8:
-                        self.socket.send(b"Please provide map id (int), model (str), driver (str), x (int), y (int), topspeed (int), topfuel (int).\n")
+                    if len(args) != 6:
+                        self.socket.send(b"Please provide map id (int), model (str), driver (str), topspeed (int), topfuel (int).\n")
                     else:
                         map_id = int(args[1])
                         if map_id not in Repo._attached_maps[self.username]:
                             self.socket.send(b"Please attach the map first.\n")
                         else:
                             try:
-                                x, y, topspeed, topfuel = map(int, args[4:8])
                                 model, driver = args[2:4]
+                                topspeed, topfuel = map(int, args[4:6])
                                 _map = Repo._maps[map_id]
-                                car = Repo().components.create("Car", model=model, map_ref=_map, driver=driver, pos=(x,y), angle=0, topspeed=topspeed, topfuel=topfuel)
-                                _map.place(car, x, y)
+                                car = Repo().components.create("Car", model=model, map_ref=_map, driver=driver, topspeed=topspeed, topfuel=topfuel)
+                                _map.place(car, 0, 0)
                                 car_id = _map.get_car_id(car)
                                 self.socket.send(f"Car created with id {car_id} on map with id {map_id}.\n".encode())
                             except ValueError as e:
@@ -326,11 +327,8 @@ class Agent(th.Thread): # server thread that handles user request
                             _map = Repo._maps[map_id]
                             car_id = int(args[2])
                             if car_id in _map.cars:
-                                try:
-                                    _map.accel_car(car_id)
-                                    self.socket.send(f"Car with id {car_id} accelerated.\n".encode())
-                                except ValueError as e:
-                                    self.socket.send(str(e).encode())
+                                res = _map.accel_car(car_id)
+                                self.socket.send(res.encode())
                             else:
                                 self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
             elif args[0] == "BRAKE_CAR":
@@ -347,11 +345,8 @@ class Agent(th.Thread): # server thread that handles user request
                             _map = Repo._maps[map_id]
                             car_id = int(args[2])
                             if car_id in _map.cars:
-                                try:
-                                    _map.brake_car(car_id)
-                                    self.socket.send(f"Car with id {car_id} braked.\n".encode())
-                                except ValueError as e:
-                                    self.socket.send(str(e).encode())
+                                res = _map.brake_car(car_id)
+                                self.socket.send(res.encode())
                             else:
                                 self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
             elif args[0] == "LEFT_CAR":
@@ -368,11 +363,8 @@ class Agent(th.Thread): # server thread that handles user request
                             _map = Repo._maps[map_id]
                             car_id = int(args[2])
                             if car_id in _map.cars:
-                                try:
-                                    _map.left_car(car_id)
-                                    self.socket.send(f"Car with id {car_id} turned left.\n".encode())
-                                except ValueError as e:
-                                    self.socket.send(str(e).encode())
+                                res = _map.left_car(car_id)
+                                self.socket.send(res.encode())
                             else:
                                 self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
             elif args[0] == "RIGHT_CAR":
@@ -389,11 +381,8 @@ class Agent(th.Thread): # server thread that handles user request
                             _map = Repo._maps[map_id]
                             car_id = int(args[2])
                             if car_id in _map.cars:
-                                try:
-                                    _map.right_car(car_id)
-                                    self.socket.send(f"Car with id {car_id} turned right.\n".encode())
-                                except ValueError as e:
-                                    self.socket.send(str(e).encode())
+                                res = _map.right_car(car_id)
+                                self.socket.send(res.encode())
                             else:
                                 self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
             elif args[0] == "CAR_INFO":
@@ -410,7 +399,7 @@ class Agent(th.Thread): # server thread that handles user request
                             _map = Repo._maps[map_id]
                             car_id = int(args[2])
                             if car_id in _map.cars:
-                                self.socket.send(_map.cars[car_id].get_car_info().encode())
+                                self.socket.send((json.dumps(_map.cars[car_id].get_car_info()) + "\n").encode())
                             else:
                                 self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
             else:

@@ -4,9 +4,10 @@ from django.contrib.auth import  authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import RegisterForm, MapCreateForm, ComponentCreateForm, ComponentRotateDeleteForm
+from .forms import RegisterForm, MapCreateForm, ComponentCreateForm, ComponentRotateDeleteForm, CarCreateForm
 from socket import socket, AF_INET, SOCK_STREAM
-from .models import Map, ComponentRegistry, Component
+from .models import Map, ComponentRegistry, Component, Car
+import json
 
 # Create your views here.
 
@@ -45,7 +46,8 @@ def login_view(request):
             messages.error(request, "Wrong username or password.")
 
     return render(request, 'registration/login.html', {'form': AuthenticationForm})
-    
+
+@login_required
 def logout_view(request):
     if request.method == "POST":
         if request.POST["submit"] == "Logout":
@@ -200,6 +202,8 @@ def maps(request):
 
 @login_required
 def map_view(request, map_id):
+    car_info = {}
+
     if request.method == "POST":
         if request.POST["submit"] == "Create Component":
             return redirect(f"/racemap/maps/{map_id}/create_component")
@@ -207,6 +211,106 @@ def map_view(request, map_id):
             return redirect(f"/racemap/maps/{map_id}/rotate_component")
         elif request.POST["submit"] == "Delete Component":
             return redirect(f"/racemap/maps/{map_id}/delete_component")
+        elif request.POST["submit"] == "Create Car":
+            return redirect(f"/racemap/maps/{map_id}/create_car")
+        elif request.POST["submit"] == "Get Car Info":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"CAR_INFO {map_id} {car_id}\n".encode())
+            reply = json.loads(s.recv(1024).decode()[:-1])
+            s.close()
+
+            car_info = reply
+            
+        elif request.POST["submit"] == "Delete":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"DELETE_CAR {map_id} {car_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            Car.objects.get(id=car_id).delete()
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Start":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"START_CAR {map_id} {car_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Stop":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"STOP_CAR {map_id} {car_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Accelerate":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"ACCEL_CAR {map_id} {car_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Brake":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"BRAKE_CAR {map_id} {car_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Turn Left":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"LEFT_CAR {map_id} {car_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            messages.success(request, reply)
+        elif request.POST["submit"] == "Turn Right":
+            car_id = request.POST["car_id"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"RIGHT_CAR {map_id} {car_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            messages.success(request, reply)
         elif request.POST["submit"] == "Start Game":
             s = socket(AF_INET, SOCK_STREAM)
             s.connect(("127.0.0.1", 8001))
@@ -215,6 +319,7 @@ def map_view(request, map_id):
             s.send(f"START_GAME {map_id}\n".encode())
             reply = s.recv(1024).decode()
             s.close()
+
             messages.success(request, reply)
         elif request.POST["submit"] == "Stop Game":
             s = socket(AF_INET, SOCK_STREAM)
@@ -224,6 +329,7 @@ def map_view(request, map_id):
             s.send(f"STOP_GAME {map_id}\n".encode())
             reply = s.recv(1024).decode()
             s.close()
+
             messages.success(request, reply)
         elif request.POST["submit"] == "Save Game":
             s = socket(AF_INET, SOCK_STREAM)
@@ -233,11 +339,13 @@ def map_view(request, map_id):
             s.send(f"SAVE {map_id}\n".encode())
             reply = s.recv(1024).decode()
             s.close()
+
             messages.success(request, reply)
 
     _map = User.objects.get(username=request.user).maps.get(id=map_id)
     comps = Component.objects.filter(map=map_id).order_by("x", "y")
-    return render(request, "map.html", {"map": _map, "comps": comps})
+    cars = Car.objects.filter(map=map_id)
+    return render(request, "map.html", {"map": _map, "comps": comps, "cars": cars, "car_info": car_info})
 
 @login_required
 def create_component(request, map_id):
@@ -329,3 +437,63 @@ def delete_component(request, map_id):
             messages.error(request, error_string)
 
     return render(request, "delete_component.html", {"form": ComponentRotateDeleteForm})
+
+@login_required
+def create_car(request, map_id):
+    if request.method == "POST":
+        form = CarCreateForm(request.POST)
+        if form.is_valid():
+            model = form.cleaned_data["model"]
+            driver = form.cleaned_data["driver"]
+            topspeed = form.cleaned_data["topspeed"]
+            topfuel = form.cleaned_data["topfuel"]
+
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"CREATE_CAR {map_id} {model} {driver} {topspeed} {topfuel}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            if "Car created" not in reply:
+                messages.error(request, reply)
+            else:
+                _map = Map.objects.get(id=map_id)
+                car_id = reply.split(" ")[4]
+                Car.objects.create(id=car_id, map=_map, model=model, driver=driver, topspeed=topspeed, topfuel=topfuel)
+                messages.success(request, reply)
+                return redirect(f"/racemap/maps/{map_id}")
+        else:
+            error_string = ' '.join([' '.join(x for x in l) for l in list(form.errors.values())])
+            messages.error(request, error_string)
+
+    return render(request, "create_car.html", {"form": CarCreateForm})
+
+@login_required
+def delete_car(request, map_id):
+    return render(request, "delete_car.html")
+
+@login_required
+def start_car(request, map_id):
+    return render(request, "start_car.html")
+
+@login_required
+def stop_car(request, map_id):
+    return render(request, "stop_car.html")
+
+@login_required
+def accel_car(request, map_id):
+    return render(request, "accel_car.html")
+
+@login_required
+def brake_car(request, map_id):
+    return render(request, "brake_car.html")
+
+@login_required
+def left_car(request, map_id):
+    return render(request, "left_car.html")
+
+@login_required
+def right_car(request, map_id):
+    return render(request, "right_car.html")

@@ -50,10 +50,10 @@ map_instance[(2, 3)] = Repo().components.create("Checkpoint")
 refuel = Repo().components.create("Refuel")
 map_instance.place(refuel, 15, 500)
 # map_instance.draw()
-volvo_XC60 = Repo().components.create("Car", model="Volvo-XC60", map_ref=map_instance, driver="batuhan", pos=(1,1), angle=0, topspeed=100, topfuel=100)
+volvo_XC60 = Repo().components.create("Car", model="Volvo-XC60", map_ref=map_instance, driver="batuhan", topspeed=100, topfuel=100)
 map_instance.place(volvo_XC60, 128, 0)
 # map_instance.draw()
-audi_A4 = Repo().components.create("Car", model="Audi-A4", map_ref=map_instance, driver="ahmet", pos=(0,0), angle=0, topspeed=200, topfuel=80)
+audi_A4 = Repo().components.create("Car", model="Audi-A4", map_ref=map_instance, driver="ahmet", topspeed=200, topfuel=80)
 map_instance.place(audi_A4, 0, 0) """
 
 """ sub_map = map_instance.view(3, 1, 5, 5)

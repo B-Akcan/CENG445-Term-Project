@@ -87,12 +87,12 @@ def clamp(value, min_value, max_value):
     return max(min_value, min(value, max_value))
 
 class Car(Component):
-    def __init__(self, model, map_ref, driver, pos, angle, topspeed, topfuel):
+    def __init__(self, model, map_ref, driver, topspeed, topfuel):
         self.model = model
         self.map = map_ref # of type Map
         self.driver = driver
-        self.pos = pos # (x, y)
-        self.angle = angle
+        self.pos = (0.0, 0.0) # (x, y)
+        self.angle = 0
         self.topspeed = topspeed
         self.topfuel = topfuel
         self.speed = 0.0
@@ -152,36 +152,36 @@ class Car(Component):
         self.left_flag = False
         self.right_flag = False
 
-    def accel(self) -> None:
+    def accel(self) -> str:
         if self.started:
             self.accel_flag = True
-            return
-        raise ValueError(f"Car '{self.model}' is not started.\n")
+            return f"Car '{self.model}' accelerated.\n"
+        return f"Car '{self.model}' is not started.\n"
 
-    def brake(self) -> None:
+    def brake(self) -> str:
         if self.started:
             self.brake_flag = True
-            return
-        raise ValueError(f"Car '{self.model}' is not started.\n")
+            return f"Car '{self.model}' braked.\n"
+        return f"Car '{self.model}' is not started.\n"
 
-    def left(self) -> None:
+    def left(self) -> str:
         if self.started:
             self.left_flag = True
-            return
-        raise ValueError(f"Car '{self.model}' is not started.\n")
+            return f"Car '{self.model}' turned left.\n"
+        return f"Car '{self.model}' is not started.\n"
 
-    def right(self) -> None:
+    def right(self) -> str:
         if self.started:
             self.right_flag = True
-            return
-        raise ValueError(f"Car '{self.model}' is not started.\n")
+            return f"Car '{self.model}' turned right.\n"
+        return f"Car '{self.model}' is not started.\n"
 
     def tick(self) -> None:
         if not self.started:
-            print(f"Car '{self.model}' is not started")
+            #print(f"Car '{self.model}' is not started")
             return
         if self.fuel <= 0:
-            print(f"Car '{self.model}' is out of fuel")
+            #print(f"Car '{self.model}' is out of fuel")
             return
 
         # Set speed based on flags
@@ -228,7 +228,7 @@ class Car(Component):
         self.left_flag = False
         self.right_flag = False
 
-        print(f"{self.model} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.2f} and fuel {self.fuel:.2f}.")
+        #print(f"{self.model} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.2f} and fuel {self.fuel:.2f}.")
 
     def to_dict(self): # excludes map_ref, to prevent circular reference
         return {
@@ -247,8 +247,19 @@ class Car(Component):
             "right_flag": self.right_flag,
         }
     
-    def get_car_info(self) -> str:
-        return f"Model: {self.model}, Driver: {self.driver}, Position: ({self.pos[0]:.2f},{self.pos[1]:.2f}), Angle: {self.angle}, Speed: {self.speed:.2f}, Fuel: {self.fuel:.2f}, Top Speed: {self.topspeed}, Top Fuel: {self.topfuel}, Is Started: {self.started}\n"
+    def get_car_info(self) -> dict:
+        return {
+            "model": self.model,
+            "x": round(self.pos[0], 2),
+            "y": round(self.pos[1], 2),
+            "angle": self.angle,
+            "speed": round(self.speed, 2),
+            "fuel": round(self.fuel, 2),
+            "is_started": self.started,
+            "laps": self.lap_count,
+            "last_checkpoint": self.last_checkpoint,
+            "checkpoint_times": self.checkpoint_times
+        }
     
 class Cell(Component):
     @classmethod

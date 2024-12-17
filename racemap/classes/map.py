@@ -271,49 +271,57 @@ class Map():
             self.cars_users -= 1
             self.can_use_cars.notify_all()
 
-    def accel_car(self, car_id: int) -> None:
+    def accel_car(self, car_id: int) -> str:
         with self.lock:
             while self.cars_users > 0:
                 self.can_use_cars.wait()
             self.cars_users += 1
 
-            self.cars[car_id].accel()
+            res = self.cars[car_id].accel()
 
             self.cars_users -= 1
             self.can_use_cars.notify_all()
 
-    def brake_car(self, car_id: int) -> None:
+            return res
+
+    def brake_car(self, car_id: int) -> str:
         with self.lock:
             while self.cars_users > 0:
                 self.can_use_cars.wait()
             self.cars_users += 1
 
-            self.cars[car_id].brake()
+            res = self.cars[car_id].brake()
 
             self.cars_users -= 1
             self.can_use_cars.notify_all()
 
-    def right_car(self, car_id: int) -> None:
+            return res
+
+    def right_car(self, car_id: int) -> str:
         with self.lock:
             while self.cars_users > 0:
                 self.can_use_cars.wait()
             self.cars_users += 1
 
-            self.cars[car_id].right()
+            res = self.cars[car_id].right()
 
             self.cars_users -= 1
             self.can_use_cars.notify_all()
 
-    def left_car(self, car_id: int) -> None:
+            return res
+
+    def left_car(self, car_id: int) -> str:
         with self.lock:
             while self.cars_users > 0:
                 self.can_use_cars.wait()
             self.cars_users += 1
 
-            self.cars[car_id].left()
+            res = self.cars[car_id].left()
 
             self.cars_users -= 1
             self.can_use_cars.notify_all()
+
+            return res
     
     def get_checkpoint_order(self, checkpoint: Checkpoint) -> int:
         i = 0

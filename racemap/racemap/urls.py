@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from RaceMapApp.views import index, register, login_view, logout_view
-from RaceMapApp.models import Map, ComponentRegistry, Component
+from RaceMapApp.models import Map, ComponentRegistry, Component, Car
 from classes.server import Server
 from multiprocessing import Process
 
@@ -40,3 +40,4 @@ for c in ComponentRegistry.objects.all():
     c.is_registered = False
     c.save()
 Component.objects.all().delete()
+Car.objects.all().delete()

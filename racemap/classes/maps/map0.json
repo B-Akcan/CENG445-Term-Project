@@ -2,9 +2,9 @@
     "cols": 3,
     "rows": 3,
     "cellsize": 10,
-    "bgcolor": "green",
+    "bgcolor": "BLUE",
     "game_mode": true,
-    "start_time": 1734356802.3362968,
+    "start_time": 1734443754.9864342,
     "grid": [
         [
             null,
@@ -23,6 +23,25 @@
         ]
     ],
     "cells": {},
-    "cars": {},
+    "cars": {
+        "0": {
+            "model": "Ferrari",
+            "driver": "Alonso",
+            "pos": [
+                30,
+                30
+            ],
+            "angle": 315,
+            "topspeed": 10,
+            "topfuel": 10,
+            "speed": 0.0,
+            "fuel": 0,
+            "started": false,
+            "accel_flag": false,
+            "brake_flag": false,
+            "left_flag": false,
+            "right_flag": false
+        }
+    },
     "checkpoints": {}
 }
