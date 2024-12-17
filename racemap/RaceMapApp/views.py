@@ -469,31 +469,3 @@ def create_car(request, map_id):
             messages.error(request, error_string)
 
     return render(request, "create_car.html", {"form": CarCreateForm})
-
-@login_required
-def delete_car(request, map_id):
-    return render(request, "delete_car.html")
-
-@login_required
-def start_car(request, map_id):
-    return render(request, "start_car.html")
-
-@login_required
-def stop_car(request, map_id):
-    return render(request, "stop_car.html")
-
-@login_required
-def accel_car(request, map_id):
-    return render(request, "accel_car.html")
-
-@login_required
-def brake_car(request, map_id):
-    return render(request, "brake_car.html")
-
-@login_required
-def left_car(request, map_id):
-    return render(request, "left_car.html")
-
-@login_required
-def right_car(request, map_id):
-    return render(request, "right_car.html")
