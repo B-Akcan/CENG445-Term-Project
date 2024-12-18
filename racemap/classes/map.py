@@ -249,27 +249,31 @@ class Map():
                 return k
         return -1
     
-    def start_car(self, car_id: int) -> None:
+    def start_car(self, car_id: int) -> str:
         with self.lock:
             while self.cars_users > 0:
                 self.can_use_cars.wait()
             self.cars_users += 1
 
-            self.cars[car_id].start()
+            res = self.cars[car_id].start()
 
             self.cars_users -= 1
             self.can_use_cars.notify_all()
 
-    def stop_car(self, car_id: int) -> None:
+            return res
+
+    def stop_car(self, car_id: int) -> str:
         with self.lock:
             while self.cars_users > 0:
                 self.can_use_cars.wait()
             self.cars_users += 1
 
-            self.cars[car_id].stop()
+            res = self.cars[car_id].stop()
 
             self.cars_users -= 1
             self.can_use_cars.notify_all()
+
+            return res
 
     def accel_car(self, car_id: int) -> str:
         with self.lock:
@@ -404,6 +408,8 @@ class Map():
         with self.lock:
             self.game_mode = False
             self.start_time = 0.0
+            for car_id in self.cars:
+                self.cars[car_id].stop()
 
     def game_loop(self) -> None:
         tick_interval = 0.1

@@ -46,9 +46,6 @@
                 <th>Fuel</th>
                 <th>Angle</th>
                 <th>Is Started</th>
-                <th>Laps</th>
-                <th>Last Checkpoint</th>
-                <th>Checkpoint Times</th>
             </tr>
         </thead>
         <tbody>
@@ -64,17 +61,7 @@
                         <td>{{ car_info.fuel }}</td>
                         <td>{{ car_info.angle }}</td>
                         <td>{{ car_info.is_started }}</td>
-                        <td>{{ car_info.laps }}</td>
-                        {% if car_info.last_checkpoint == -1 %}
-                            <td>None</td>
-                        {% else %}
-                            <td>{{ car_info.last_checkpoint }}</td>
-                        {% endif %}
-                        <td>{{ car_info.checkpoint_times }}</td>
                     {% else %}
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
                         <td>-</td>
                         <td>-</td>
                         <td>-</td>
@@ -99,6 +86,19 @@
             {% endfor %}
         </tbody>
     </table>
+{% endif %}
+
+<h3>Car Rankings</h3>
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Get Car Rankings">
+</form>
+{% if car_rankings %}
+    <ol>
+        {% for car in car_rankings %}
+        <li>{{ car }}</li>
+        {% endfor %}
+    </ol>
 {% endif %}
 
 <h3>Game</h3>

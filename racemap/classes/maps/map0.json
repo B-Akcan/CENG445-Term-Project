@@ -4,7 +4,7 @@
     "cellsize": 10,
     "bgcolor": "BLUE",
     "game_mode": true,
-    "start_time": 1734443754.9864342,
+    "start_time": 1734524685.7986944,
     "grid": [
         [
             null,
@@ -29,14 +29,14 @@
             "driver": "Alonso",
             "pos": [
                 30,
-                30
+                0
             ],
-            "angle": 315,
+            "angle": 0,
             "topspeed": 10,
             "topfuel": 10,
-            "speed": 0.0,
+            "speed": 3.0,
             "fuel": 0,
-            "started": false,
+            "started": true,
             "accel_flag": false,
             "brake_flag": false,
             "left_flag": false,

@@ -291,8 +291,8 @@ class Agent(th.Thread): # server thread that handles user request
                             _map = Repo._maps[map_id]
                             car_id = int(args[2])
                             if car_id in _map.cars:
-                                _map.start_car(car_id)
-                                self.socket.send(f"Car with id {car_id} started.\n".encode())
+                                res = _map.start_car(car_id)
+                                self.socket.send(res.encode())
                             else:
                                 self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
             elif args[0] == "STOP_CAR":
@@ -309,8 +309,8 @@ class Agent(th.Thread): # server thread that handles user request
                             _map = Repo._maps[map_id]
                             car_id = int(args[2])
                             if car_id in _map.cars:
-                                _map.stop_car(car_id)
-                                self.socket.send(f"Car with id {car_id} stopped.\n".encode())
+                                res = _map.stop_car(car_id)
+                                self.socket.send(res.encode())
                             else:
                                 self.socket.send(f"Car with id {car_id} does not exist.\n".encode())
             elif args[0] == "ACCEL_CAR":

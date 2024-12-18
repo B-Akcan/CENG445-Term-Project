@@ -4,10 +4,12 @@ from django.contrib.auth import  authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
+from django.db.utils import IntegrityError
 from .forms import RegisterForm, MapCreateForm, ComponentCreateForm, ComponentRotateDeleteForm, CarCreateForm
 from socket import socket, AF_INET, SOCK_STREAM
 from .models import Map, ComponentRegistry, Component, Car
 import json
+import time
 
 # Create your views here.
 
@@ -203,6 +205,7 @@ def maps(request):
 @login_required
 def map_view(request, map_id):
     car_info = {}
+    car_rankings = ""
 
     if request.method == "POST":
         if request.POST["submit"] == "Create Component":
@@ -311,6 +314,19 @@ def map_view(request, map_id):
             s.close()
 
             messages.success(request, reply)
+        elif request.POST["submit"] == "Get Car Rankings":
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect(("127.0.0.1", 8001))
+            s.send(f"USER {request.user}\n".encode())
+            s.recv(1024)
+            s.send(f"DRAW_MAP {map_id}\n".encode())
+            reply = s.recv(1024).decode()
+            s.close()
+
+            car_rankings = reply[reply.index("Car Rankings:\n") + 13:].split("\n")[1:-1]
+            if len(car_rankings) == 0:
+                messages.error(request, "No car exists.\n")
+
         elif request.POST["submit"] == "Start Game":
             s = socket(AF_INET, SOCK_STREAM)
             s.connect(("127.0.0.1", 8001))
@@ -345,7 +361,7 @@ def map_view(request, map_id):
     _map = User.objects.get(username=request.user).maps.get(id=map_id)
     comps = Component.objects.filter(map=map_id).order_by("x", "y")
     cars = Car.objects.filter(map=map_id)
-    return render(request, "map.html", {"map": _map, "comps": comps, "cars": cars, "car_info": car_info})
+    return render(request, "map.html", {"map": _map, "comps": comps, "cars": cars, "car_info": car_info, "car_rankings": car_rankings})
 
 @login_required
 def create_component(request, map_id):
@@ -448,22 +464,26 @@ def create_car(request, map_id):
             topspeed = form.cleaned_data["topspeed"]
             topfuel = form.cleaned_data["topfuel"]
 
-            s = socket(AF_INET, SOCK_STREAM)
-            s.connect(("127.0.0.1", 8001))
-            s.send(f"USER {request.user}\n".encode())
-            s.recv(1024)
-            s.send(f"CREATE_CAR {map_id} {model} {driver} {topspeed} {topfuel}\n".encode())
-            reply = s.recv(1024).decode()
-            s.close()
-
-            if "Car created" not in reply:
-                messages.error(request, reply)
+            _map = Map.objects.get(id=map_id)
+            car = Car.objects.filter(model=model, map=_map)
+            if car.exists():
+                messages.error(request, f"Car with model '{model}' already exists.\n")
             else:
-                _map = Map.objects.get(id=map_id)
-                car_id = reply.split(" ")[4]
-                Car.objects.create(id=car_id, map=_map, model=model, driver=driver, topspeed=topspeed, topfuel=topfuel)
-                messages.success(request, reply)
-                return redirect(f"/racemap/maps/{map_id}")
+                s = socket(AF_INET, SOCK_STREAM)
+                s.connect(("127.0.0.1", 8001))
+                s.send(f"USER {request.user}\n".encode())
+                s.recv(1024)
+                s.send(f"CREATE_CAR {map_id} {model} {driver} {topspeed} {topfuel}\n".encode())
+                reply = s.recv(1024).decode()
+                s.close()
+
+                if "Car created" not in reply:
+                    messages.error(request, reply)
+                else:
+                    car_id = reply.split(" ")[4]
+                    Car.objects.create(id=car_id, map=_map, model=model, driver=driver, topspeed=topspeed, topfuel=topfuel)
+                    messages.success(request, reply)
+                    return redirect(f"/racemap/maps/{map_id}")
         else:
             error_string = ' '.join([' '.join(x for x in l) for l in list(form.errors.values())])
             messages.error(request, error_string)
