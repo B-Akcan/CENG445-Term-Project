@@ -1,0 +1,10 @@
+Wall
+Booster
+Refuel
+StraightRoad
+Turn90
+Decoration
+Mud
+Car
+Checkpoint
+Ice

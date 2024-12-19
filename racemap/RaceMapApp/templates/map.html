@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block style %}
 <style>
     table {
@@ -18,9 +20,11 @@
     }
     .map {
         border: 1px solid black;
-        height: calc(20px * {{map.num_rows}} + 10px);
-        width: calc(20px * {{map.num_cols}} + 10px);
+        height: calc(50px * {{map.num_rows}});
+        width: calc(50px * {{map.num_cols}});
         background: {{ map.bg_color }};
+        margin-left: 30px;
+        margin-top: 30px;
     }
 </style>
 {% endblock %}
@@ -101,15 +105,19 @@
     </ol>
 {% endif %}
 
-<h3>Game</h3>
+<h3>Components</h3>
 <form method="post">
     {% csrf_token %}
     <input type="hidden" name="map_id" value="{{ map.id }}">
     <input type="submit" name="submit" value="Create Component">
     <input type="submit" name="submit" value="Rotate Component">
     <input type="submit" name="submit" value="Delete Component">
-    <br/>
-    <br/>
+</form>
+
+<h3>Game</h3>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="map_id" value="{{ map.id }}">
     <input type="submit" name="submit" value="Start Game">
     <input type="submit" name="submit" value="Stop Game">
     <input type="submit" name="submit" value="Save Game">
@@ -118,10 +126,21 @@
 <div class="map">
     <div style="position: relative;">
         {% for comp in comps %}
-            <div style="position:absolute; left: calc(20px * {{comp.x}}); top: calc(20px * {{comp.y}});">
-                <span style="font-size: 30px;">{{comp.type.type.0}}</span>
+            <div style="position:absolute; left: calc(50px * {{comp.x}}); top: calc(50px * {{comp.y}});">
+                {% with image='RaceMapApp/'|add:comp.type.type|add:'.jpeg'%}
+                    <img style="transform: rotate(calc(90deg * {{ comp.rotation }}));" src="{% static image %}" width="50" height="50">
+                {% endwith %}
             </div>
+        {% endfor %}
+
+        {% for car in cars %}
+            {% if car_info and car_info.model == car.model %}
+                <div style="position:absolute; left: calc(50px * ({{ car_info.x }} / {{ map.cellsize }} - 0.5)); top: calc(50px * ({{ car_info.y }} / {{ map.cellsize }} - 0.5));">
+                    <img style="transform: rotate(calc(-1deg * {{ car_info.angle }}))" src="{% static 'RaceMapApp/Car.jpeg' %}" width="50" height="50">
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
 </div>
+
 {% endblock %}

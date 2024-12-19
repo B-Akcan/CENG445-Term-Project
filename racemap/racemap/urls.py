@@ -36,8 +36,5 @@ p = Process(target=s.start_server)
 p.start()
 
 Map.objects.all().delete()
-for c in ComponentRegistry.objects.all():
-    c.is_registered = False
-    c.save()
 Component.objects.all().delete()
 Car.objects.all().delete()

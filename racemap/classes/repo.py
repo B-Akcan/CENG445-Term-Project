@@ -14,6 +14,7 @@ class Repo(Singleton):
         assigned_id = Repo._id
         Repo._maps[assigned_id] = Map(**kw)
         Repo._id += 1
+        Repo.saveMap(assigned_id)
         return assigned_id
 
     @staticmethod
@@ -40,6 +41,26 @@ class Repo(Singleton):
         Repo._attached_maps[user].remove(map_id)
 
     @staticmethod
+    def saveRegisteredComponents() -> None:
+        root = Path(__file__).parent
+        path_to_create = root / "saved" / "registered_components.txt"
+        with path_to_create.open("w") as file:
+            for comp in Repo().components.registeredComponentsToList():
+                file.write(comp + "\n")
+
+    @staticmethod
+    def loadRegisteredComponents() -> None:
+        try:
+            root = Path(__file__).parent
+            path_to_read = root / "saved" / "registered_components.txt"
+            with path_to_read.open("r") as file:
+                temp = file.read().split("\n")[:-1]
+                for e in temp:
+                    Repo().components.register(e)
+        except:
+            pass
+
+    @staticmethod
     def delete(map_id: int) -> None: # Deletes a map by ID
         # Detach from all users
         for user in Repo._attached_maps:
@@ -62,21 +83,28 @@ class Repo(Singleton):
     def saveMap(map_id: int) -> None:
         if map_id in Repo._maps:
             root = Path(__file__).parent
-            path_to_create = root / "maps" / f"map{map_id}.json"
+            path_to_create = root / "saved" / "maps" / f"map{map_id}.json"
             with path_to_create.open("w") as file:
                 file.write(json.dumps(Repo._maps[map_id].to_dict(), indent=4))
-        else:
-            print(f"No map with id {map_id} exist.")
 
     @staticmethod
     def loadMap(map_id: int) -> Map:
         try: # if map is saved before
             root = Path(__file__).parent
-            path_to_read = root / "maps" / f"map{map_id}.json"
+            path_to_read = root / "saved" / "maps" / f"map{map_id}.json"
             with path_to_read.open("r") as file:
-                return json.loads(file)
+                return json.loads(file.read())
         except:
-            if map_id in Repo._maps:
-                return Repo._maps[map_id]
-            else:
-                print(f"No map with id {map_id} exist.")
+            return None
+        
+    @staticmethod
+    def deleteAllMaps() -> None:
+        i = 0
+        while True:
+            try:
+                root = Path(__file__).parent
+                path_to_delete = root / "saved" / "maps" / f"map{i}.json"
+                path_to_delete.unlink()
+                i += 1
+            except FileNotFoundError:
+                break

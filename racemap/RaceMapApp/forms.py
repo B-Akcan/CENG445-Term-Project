@@ -27,4 +27,4 @@ class CarCreateForm(forms.Form):
     model = forms.CharField(max_length=20)
     driver = forms.CharField(max_length=20)
     topspeed = forms.IntegerField(min_value=10, max_value=500)
-    topfuel = forms.IntegerField(min_value=10, max_value=100)
+    topfuel = forms.IntegerField(min_value=10, max_value=1000)

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h2>Create a car</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" name="submit" value="Create">
-</form>
+    <h2>Create a car</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" name="submit" value="Create">
+    </form>
 {% endblock %}

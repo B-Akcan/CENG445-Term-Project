@@ -10,16 +10,22 @@ class Server:
         self.agents: list[Agent] = []
 
     def start_server(self) -> None:
+        Repo.loadRegisteredComponents()
+        Repo.deleteAllMaps()
+
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.host, self.port))
         s.listen(5)
         print(f"----------------- Game server started on {self.host}:{self.port} -----------------")
 
         while True:
+            Repo.saveRegisteredComponents()
+
             ns, addr = s.accept()
             print(f"----------------- Game server connection established with {addr} -----------------")
             agent = Agent(socket=ns)
             agent.start()
+
 
 class Agent(th.Thread): # server thread that handles user request
     def __init__(self, socket, username=""):
@@ -78,7 +84,7 @@ class Agent(th.Thread): # server thread that handles user request
                         if map_id not in Repo._attached_maps[self.username]:
                             self.socket.send(b"Please attach the map first.\n")
                         else:
-                            _map = Repo.loadMap(map_id)
+                            _map = Repo._maps[map_id]
                             _map.start()
                             self.socket.send(b"Game started.\n")
             elif args[0] == "STOP_GAME":

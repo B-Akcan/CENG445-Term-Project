@@ -41,34 +41,24 @@ class Component():
     def register(cls, component_type: str):
         if component_type == "Car":
             cls._registered_components[component_type] = Car
-        elif component_type == "Cell":
-            cls._registered_components[component_type] = Cell
         elif component_type == "Decoration":
             cls._registered_components[component_type] = Decoration
         elif component_type == "Checkpoint":
             cls._registered_components[component_type] = Checkpoint
-        elif component_type == "Obstacle":
-            cls._registered_components[component_type] = Obstacle
         elif component_type == "Wall":
             cls._registered_components[component_type] = Wall
         elif component_type == "Mud":
             cls._registered_components[component_type] = Mud
         elif component_type == "Ice":
             cls._registered_components[component_type] = Ice
-        elif component_type == "Bonus":
-            cls._registered_components[component_type] = Bonus
         elif component_type == "Booster":
             cls._registered_components[component_type] = Booster
         elif component_type == "Refuel":
             cls._registered_components[component_type] = Refuel
-        elif component_type == "Road":
-            cls._registered_components[component_type] = Road
         elif component_type == "StraightRoad":
             cls._registered_components[component_type] = StraightRoad
         elif component_type == "Turn90":
             cls._registered_components[component_type] = Turn90
-        else:
-            raise ValueError(f"{component_type} does not exist.\n")
 
     @classmethod
     def unregister(cls, component_type: str):
@@ -82,6 +72,15 @@ class Component():
         comps = ["Car", "Cell", "Decoration", "Checkpoint", "Obstacle", "Wall", "Mud", "Ice", "Bonus", "Booster", "Refuel", "Road", "StraightRoad", "Turn90"]
         for c in comps:
             cls.register(c)
+
+    @classmethod
+    def registeredComponentsToList(cls):
+        res = []
+
+        for comp_type in cls._registered_components:
+            res.append(comp_type)
+
+        return res
 
 def clamp(value, min_value, max_value):
     return max(min_value, min(value, max_value))
