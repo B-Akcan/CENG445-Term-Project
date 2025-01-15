@@ -217,6 +217,7 @@ class Map():
             if car not in list(self.cars.values()):
                 car_id = ComponentIdCounter().get()
                 self.cars[car_id] = car
+                car.id = car_id
 
                 self.cars_users -= 1
                 self.can_use_cars.notify_all()
@@ -359,7 +360,7 @@ class Map():
             checkpoint = car.last_checkpoint
             if checkpoint != -1:
                 time_elapsed = time.time() - car.checkpoint_times[checkpoint]
-                buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time elapsed since last checkpoint: {time_elapsed:.2f} s\n"
+                buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time since last checkpoint: {time_elapsed:.2f} s\n"
             else:
                 buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: None\n"
             

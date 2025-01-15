@@ -118,6 +118,7 @@ class Car(Component):
     @classmethod
     def attrs(cls) -> dict:
         return {
+            "id": int,
             "model": str,
             "map": object,
             "driver": str,
@@ -239,6 +240,7 @@ class Car(Component):
 
     def to_dict(self): # excludes map_ref, to prevent circular reference
         return {
+            "id": self.id,
             "model": self.model,
             "driver": self.driver,
             "pos": self.pos,
@@ -256,6 +258,7 @@ class Car(Component):
     
     def get_car_info(self) -> dict:
         return {
+            "id": self.id,
             "model": self.model,
             "x": round(self.pos[0], 2),
             "y": round(self.pos[1], 2),

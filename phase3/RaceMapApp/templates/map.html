@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block style %}
+<style>
+    table {
+        width: 100%;
+    }
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    th, td {
+        text-align: center;
+        padding: 5px;
+    }
+    #cars_form {
+        margin-bottom: 0;
+    }
+    .map {
+        border: 1px solid black;
+        height: calc(50px * {{map.num_rows}});
+        width: calc(50px * {{map.num_cols}});
+        background: {{ map.bg_color }};
+        margin-left: 30px;
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<h2>Map {{ map.id }}</h2>
+
+<h3>Cars</h3>
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Create Car">
+</form>
+{% if cars %}
+    <table>
+        <thead>
+            <tr>
+                <th>Model</th>
+                <th>Driver</th>
+                <th>Top speed</th>
+                <th>Top fuel</th>
+                <th>Position</th>
+                <th>Speed</th>
+                <th>Fuel</th>
+                <th>Angle</th>
+                <th>Is Started</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for car in cars %}
+                <tr>
+                    <td>{{ car.model }}</td>
+                    <td>{{ car.driver }}</td>
+                    <td>{{ car.topspeed }}</td>
+                    <td>{{ car.topfuel }}</td>
+                    {% if car_info and car_info.model == car.model %}
+                        <td>({{ car_info.x }},{{ car_info.y }})</td>
+                        <td>{{ car_info.speed }}</td>
+                        <td>{{ car_info.fuel }}</td>
+                        <td>{{ car_info.angle }}</td>
+                        <td>{{ car_info.is_started }}</td>
+                    {% else %}
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    {% endif %}
+                    <td>
+                        <form method="post" id="cars_form">
+                            {% csrf_token %}
+                            <input type="submit" name="submit" value="Get Car Info">
+                            <input type="submit" name="submit" value="Delete">
+                            <input type="submit" name="submit" value="Start">
+                            <input type="submit" name="submit" value="Stop">
+                            <input type="submit" name="submit" value="Accelerate">
+                            <input type="submit" name="submit" value="Brake">
+                            <input type="submit" name="submit" value="Turn Left">
+                            <input type="submit" name="submit" value="Turn Right">
+                            <input type="hidden" name="car_id" value="{{ car.id }}">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<h3>Car Rankings</h3>
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Get Car Rankings">
+</form>
+{% if car_rankings %}
+    <ol>
+        {% for car in car_rankings %}
+        <li>{{ car }}</li>
+        {% endfor %}
+    </ol>
+{% endif %}
+
+<h3>Components</h3>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="map_id" value="{{ map.id }}">
+    <input type="submit" name="submit" value="Create Component">
+    <input type="submit" name="submit" value="Rotate Component">
+    <input type="submit" name="submit" value="Delete Component">
+</form>
+
+<h3>Game</h3>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="map_id" value="{{ map.id }}">
+    <input type="submit" name="submit" value="Start Game">
+    <input type="submit" name="submit" value="Stop Game">
+    <input type="submit" name="submit" value="Save Game">
+</form>
+
+<div class="map">
+    <div style="position: relative;">
+        {% for comp in comps %}
+            <div style="position:absolute; left: calc(50px * {{comp.x}}); top: calc(50px * {{comp.y}});">
+                {% with image='RaceMapApp/'|add:comp.type.type|add:'.png'%}
+                    <img style="transform: rotate(calc(90deg * {{ comp.rotation }}));" src="{% static image %}" width="50" height="50">
+                {% endwith %}
+            </div>
+        {% endfor %}
+
+        {% for car in cars %}
+            {% if car_info and car_info.model == car.model %}
+                <div style="position:absolute; left: calc(50px * ({{ car_info.x }} / {{ map.cellsize }} - 0.5)); top: calc(50px * ({{ car_info.y }} / {{ map.cellsize }} - 0.5));">
+                    <img style="transform: rotate(calc(-1deg * {{ car_info.angle }} + 90deg))" src="{% static 'RaceMapApp/Car.png' %}" width="50" height="50">
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
