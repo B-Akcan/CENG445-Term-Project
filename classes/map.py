@@ -360,7 +360,10 @@ class Map():
             checkpoint = car.last_checkpoint
             if checkpoint != -1:
                 time_elapsed = time.time() - car.checkpoint_times[checkpoint]
-                buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time since last checkpoint: {time_elapsed:.2f} s\n"
+                if time_elapsed >= 10000:
+                    buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time since last checkpoint: +10000 s\n"
+                else:
+                    buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: {checkpoint}, time since last checkpoint: {time_elapsed:.2f} s\n"
             else:
                 buf += f"{car.model}: {car.lap_count} lap(s), last checkpoint: None\n"
             
@@ -428,8 +431,6 @@ class Map():
             "bgcolor": self.bgcolor,
             "game_mode": self.game_mode,
             "start_time": self.start_time,
-            "grid": [[cell.to_dict() if cell else None for cell in row] for row in self.grid],
-            "cells": {cell_id: cell.to_dict() for cell_id, cell in self.cells.items()},
-            "cars": {car_id: car.to_dict() for car_id, car in self.cars.items()},
-            "checkpoints": {checkpoint_id: checkpoint.to_dict() for checkpoint_id, checkpoint in self.checkpoints.items()}
+            "cells": [{"id": cell_id, "type": cell.type()} | cell.to_dict() for cell_id, cell in self.cells.items()],
+            "cars": [{"id": car_id} | car.to_dict() for car_id, car in self.cars.items()],
         }

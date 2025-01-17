@@ -21,6 +21,22 @@ def handler(ws):
                         username = args[1]
                         Repo.addUser(username)
                         ws.send(f"Username set to {username}.")
+                elif args[0] == "GET_ALL_MAPS":
+                    if username == "":
+                        ws.send("Please first enter your username with USER <username> command.")
+                    else:
+                        _maps = Repo.getAllMaps()
+                        ws.send(json.dumps(_maps))
+                elif args[0] == "LOAD_MAP":
+                    if username == "":
+                        ws.send("Please first enter your username with USER <username> command.")
+                    else:
+                        if len(args) != 2:
+                            ws.send("Please provide a map id.")
+                        else:
+                            map_id = int(args[1])
+                            _map = Repo.loadMap(map_id)
+                            ws.send(json.dumps(_map))
                 elif args[0] == "ATTACH_MAP":
                     if username == "":
                         ws.send("Please first enter your username with USER <username> command.")

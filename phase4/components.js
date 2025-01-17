@@ -17,7 +17,6 @@ stage.add(layerTexts);
 var registeredComps = []
 var isRegistered = new Array(10).fill(false)
 var names = ["StraightRoad", "Turn90", "Checkpoint", "Wall", "Booster", "Refuel", "Ice", "Mud", "Decoration", "Car"]
-
 const ws = new WebSocket("ws://localhost:8000");
 ws.onopen = () => {
     ws.send("USER BATUHAN")
@@ -164,18 +163,18 @@ var decoration = new Konva.Image({
 });
 comps.push(decoration)
 
-var car = new Konva.Image({
+var porsche = new Konva.Image({
     x: 182,
     y: 360,
-    width: 25,
-    height: 48,
+    width: 48,
+    height: 25,
     draggable: true,
     offset: {
-        x: 12.5,
-        y: 24,
+        x: 24,
+        y: 12.5,
     },
 });
-comps.push(car)
+comps.push(porsche)
 
 comps.forEach((comp, index) => {
     layerObjects.add(comp)

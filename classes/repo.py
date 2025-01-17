@@ -70,6 +70,8 @@ class Repo(Singleton):
         if map_id in Repo._maps:
             del Repo._maps[map_id]
 
+        Repo.deleteMap(map_id)
+
     @property
     def components(self):
         return Component
@@ -88,7 +90,7 @@ class Repo(Singleton):
                 file.write(json.dumps(Repo._maps[map_id].to_dict(), indent=4))
 
     @staticmethod
-    def loadMap(map_id: int) -> Map:
+    def loadMap(map_id: int):
         try: # if map is saved before
             root = Path(__file__).parent
             path_to_read = root / "saved" / "maps" / f"map{map_id}.json"
@@ -96,6 +98,15 @@ class Repo(Singleton):
                 return json.loads(file.read())
         except:
             return None
+
+    @staticmethod
+    def deleteMap(map_id: int) -> None:
+        try:
+            root = Path(__file__).parent
+            path_to_delete = root / "saved" / "maps" / f"map{map_id}.json"
+            path_to_delete.unlink()
+        except FileNotFoundError:
+            pass
         
     @staticmethod
     def deleteAllMaps() -> None:
@@ -108,3 +119,7 @@ class Repo(Singleton):
                 i += 1
             except FileNotFoundError:
                 break
+
+    @staticmethod
+    def getAllMaps():
+        return list(Repo._maps.keys())
