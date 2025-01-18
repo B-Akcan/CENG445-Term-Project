@@ -34,10 +34,8 @@ const ws = new WebSocket("ws://localhost:8000");
 ws.onopen = () => {
     ws.send("USER BATUHAN")
     ws.send("GET_REGISTERED_COMPS")
-    ws.send(`ATTACH_MAP ${mapId}`)
     ws.send(`SAVE ${mapId}`)
     ws.send(`LOAD_MAP ${mapId}`)
-
 
     ws.send(`START_GAME ${mapId}`)
 }

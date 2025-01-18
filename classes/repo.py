@@ -123,3 +123,11 @@ class Repo(Singleton):
     @staticmethod
     def getAllMaps():
         return list(Repo._maps.keys())
+
+    @staticmethod
+    def getAttachedMaps(user):
+        return Repo._attached_maps[user]
+
+    @staticmethod
+    def getUnattachedMaps(user):
+        return [element for element in list(Repo._maps.keys()) if element not in Repo._attached_maps[user]]

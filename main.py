@@ -27,6 +27,26 @@ def handler(ws):
                     else:
                         _maps = Repo.getAllMaps()
                         ws.send(json.dumps(_maps))
+                elif args[0] == "GET_ATTACHED_MAPS":
+                    if username == "":
+                        ws.send("Please first enter your username with USER <username> command.")
+                    else:
+                        if len(args) != 2:
+                            ws.send("Please provide a username.")
+                        user = args[1]
+                        _maps = Repo.getAttachedMaps(user)
+                        data = {"attached": _maps}
+                        ws.send(json.dumps(data))
+                elif args[0] == "GET_UNATTACHED_MAPS":
+                    if username == "":
+                        ws.send("Please first enter your username with USER <username> command.")
+                    else:
+                        if len(args) != 2:
+                            ws.send("Please provide a username.")
+                        user = args[1]
+                        _maps = Repo.getUnattachedMaps(user)
+                        data = {"unattached": _maps}
+                        ws.send(json.dumps(data))
                 elif args[0] == "LOAD_MAP":
                     if username == "":
                         ws.send("Please first enter your username with USER <username> command.")
