@@ -43,7 +43,7 @@ ws.onopen = () => {
 }
 ws.onmessage = event => {
     const msg = event.data
-    if (!(msg.startsWith("{") || msg.startsWith("[") || msg.includes("Car Rankings")|| msg.includes("Game saved"))) {
+    if (!(msg.startsWith("{") || msg.startsWith("[") || msg.includes("Car Rankings")|| msg.includes("Game saved") || msg.includes("Username set to") || (msg.includes("Car with id") && msg.includes("does not exist")))) {
         notification.setAttr("text", msg)
         clearTimeout(timerId)
         timerId = setTimeout(() => notification.setAttr("text", ""), 3000)
@@ -225,6 +225,7 @@ window.setInterval(() => {
     if (ws.readyState == WebSocket.OPEN) {
         carIds.forEach(id => {
             ws.send(`CAR_INFO ${mapId} ${id}`)
+            aliveCars[carIds.indexOf(id)].moveToTop()
         })
         ws.send(`DRAW_MAP ${mapId}`)
         ws.send(`SAVE ${mapId}`)
@@ -831,6 +832,7 @@ var porsche = new Konva.Image({
         y: 12.5,
     },
 });
+
 porsche.on('mouseover', () => document.body.style.cursor = 'pointer')
 porsche.on('mouseout', () => document.body.style.cursor = 'default')
 layerObjects.add(porsche);
@@ -847,6 +849,7 @@ porsche.on("dragend", () => {
             porsche.setAttr("x", 800 + 32.5)
             porsche.setAttr("y", 10 + 32.5)
             porsche.setAttr("draggable", false)
+            porsche.moveToTop()
 
             porsche.on("click", () => {
                 ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(porsche)]}`)

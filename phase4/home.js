@@ -8,7 +8,7 @@ ws.onopen = () => {
 var timerId
 ws.onmessage = event => {
     const msg = event.data
-    if (!(msg.includes("["))) {
+    if (!(msg.includes("[") || msg.includes("Username set to"))) {
         var notification = document.getElementById("notification")
         notification.innerText = msg
         clearTimeout(timerId)
