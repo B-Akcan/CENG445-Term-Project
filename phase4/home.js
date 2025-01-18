@@ -1,11 +1,8 @@
 var maps = []
+var username
 
 const ws = new WebSocket("ws://localhost:8000");
-ws.onopen = () => {
-    ws.send("USER BATUHAN")
-    ws.send("GET_ATTACHED_MAPS BATUHAN")
-    ws.send("GET_UNATTACHED_MAPS BATUHAN")
-}
+
 var timerId
 ws.onmessage = event => {
     const msg = event.data
@@ -46,13 +43,25 @@ ws.onmessage = event => {
             list.append(li)
         })
     } else {
-        ws.send("GET_ATTACHED_MAPS BATUHAN")
-        ws.send("GET_UNATTACHED_MAPS BATUHAN")
+        ws.send(`GET_ATTACHED_MAPS ${username}`)
+        ws.send(`GET_UNATTACHED_MAPS ${username}`)
+    }
+}
+
+function login() {
+    username = document.getElementsByTagName("input").username.value
+    if (username != "") {
+        ws.send(`USER ${username}`)
+        ws.send(`GET_ATTACHED_MAPS ${username}`)
+        ws.send(`GET_UNATTACHED_MAPS ${username}`)
+
+        document.getElementById("beforeLogin").style = "display: none;"
+        document.getElementById("afterLogin").style = "display: block;"
     }
 }
 
 function selectMap(mapId) {
-    document.location.href = `./game.html?map=${mapId}`
+    document.location.href = `./game.html?user=${username}&map=${mapId}`
 }
 
 function createMap() {

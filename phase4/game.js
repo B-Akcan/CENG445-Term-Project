@@ -1,8 +1,11 @@
 var mapId;
+var username;
 
 window.onload = () => {
     var url = document.location.href
-    mapId = url.split('?')[1].split("=")[1]
+    var query = url.split('?')[1]
+    username = query.split("&")[0].split("=")[1]
+    mapId = query.split("&")[1].split("=")[1]
 }
 
 // -------------- Initialize drawing --------------
@@ -27,21 +30,21 @@ var activeCar = -1
 var carIds = []
 var carRankings = []
 var map;
+var started = false;
+var isOccupied = new Array(10).fill(false).map(() => new Array(10).fill(false));
 
 // -------------- Connect to Python websocket --------------
 var timerId;
 const ws = new WebSocket("ws://localhost:8000");
 ws.onopen = () => {
-    ws.send("USER BATUHAN")
+    ws.send(`USER ${username}`)
     ws.send("GET_REGISTERED_COMPS")
     ws.send(`SAVE ${mapId}`)
     ws.send(`LOAD_MAP ${mapId}`)
-
-    ws.send(`START_GAME ${mapId}`)
 }
 ws.onmessage = event => {
     const msg = event.data
-    if (!(msg.startsWith("{") || msg.startsWith("[") || msg.includes("Car Rankings")|| msg.includes("Game saved") || msg.includes("Username set to") || (msg.includes("Car with id") && msg.includes("does not exist")))) {
+    if (!(msg.startsWith("{") || msg.startsWith("[") || msg.includes("Car Rankings")|| msg === "Game saved." || msg.includes("Username set to") || (msg.includes("Car with id") && msg.includes("does not exist")))) {
         notification.setAttr("text", msg)
         clearTimeout(timerId)
         timerId = setTimeout(() => notification.setAttr("text", ""), 3000)
@@ -74,12 +77,16 @@ ws.onmessage = event => {
             };
             imageObj.src = `./images/${cell.type}.png`;
             comp.on("click", () => {
-                comp.destroy()
                 ws.send(`DELETE_COMP ${mapId} ${cell.col} ${cell.row}`)
+                if (!started) {
+                    comp.destroy()
+                    isOccupied[cell.col][cell.row] = false
+                }
             })
             comp.on("wheel", () => {
-                comp.rotate(90)
                 ws.send(`ROTATE_COMP ${mapId} ${cell.col} ${cell.row}`)
+                if (!started)
+                    comp.rotate(90)
             })
         })
         map.cars.forEach(car => {
@@ -94,14 +101,16 @@ ws.onmessage = event => {
         
                     porsche.on("click", () => {
                         ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(porsche)]}`)
-                        if (activeCar == aliveCars.indexOf(porsche))
-                            activeCar = -1
-                        aliveCars.splice(aliveCars.indexOf(porsche), 1)
-                        
-                        porsche.off("click")
-                        porsche.position({ x: 112.5, y: 460 })
-                        porsche.rotation(0)
-                        porsche.setAttr("draggable", true)
+                        if (!started) {
+                            if (activeCar == aliveCars.indexOf(porsche))
+                                activeCar = -1
+                            aliveCars.splice(aliveCars.indexOf(porsche), 1)
+                            
+                            porsche.off("click")
+                            porsche.position({ x: 112.5, y: 460 })
+                            porsche.rotation(0)
+                            porsche.setAttr("draggable", true)
+                        }
                     })
                     aliveCars.push(porsche)
                     break;
@@ -112,14 +121,16 @@ ws.onmessage = event => {
 
                     bmw.on("click", () => {
                         ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(bmw)]}`)
-                        if (activeCar == aliveCars.indexOf(bmw))
-                            activeCar = -1
-                        aliveCars.splice(aliveCars.indexOf(bmw), 1)
-                        
-                        bmw.off("click")
-                        bmw.position({ x: 112.5, y: 504 })
-                        bmw.rotation(0)
-                        bmw.setAttr("draggable", true)
+                        if (!started) {
+                            if (activeCar == aliveCars.indexOf(bmw))
+                                activeCar = -1
+                            aliveCars.splice(aliveCars.indexOf(bmw), 1)
+                            
+                            bmw.off("click")
+                            bmw.position({ x: 112.5, y: 504 })
+                            bmw.rotation(0)
+                            bmw.setAttr("draggable", true)
+                        }
                     })
                     aliveCars.push(bmw)
                     break
@@ -130,14 +141,16 @@ ws.onmessage = event => {
 
                     lambo.on("click", () => {
                         ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(lambo)]}`)
-                        if (activeCar == aliveCars.indexOf(lambo))
-                            activeCar = -1
-                        aliveCars.splice(aliveCars.indexOf(lambo), 1)
-                        
-                        lambo.off("click")
-                        lambo.position({ x: 112.5, y: 544 })
-                        lambo.rotation(0)
-                        lambo.setAttr("draggable", true)
+                        if (!started) {
+                            if (activeCar == aliveCars.indexOf(lambo))
+                                activeCar = -1
+                            aliveCars.splice(aliveCars.indexOf(lambo), 1)
+                            
+                            lambo.off("click")
+                            lambo.position({ x: 112.5, y: 544 })
+                            lambo.rotation(0)
+                            lambo.setAttr("draggable", true)
+                        }
                     })
                     aliveCars.push(lambo)
                     break
@@ -148,14 +161,16 @@ ws.onmessage = event => {
 
                     ferr.on("click", () => {
                         ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(ferr)]}`)
-                        if (activeCar == aliveCars.indexOf(ferr))
-                            activeCar = -1
-                        aliveCars.splice(aliveCars.indexOf(ferr), 1)
-
-                        ferr.off("click")
-                        ferr.position({ x: 112.5, y: 584 })
-                        ferr.rotation(0)
-                        ferr.setAttr("draggable", true)
+                        if (!started) {
+                            if (activeCar == aliveCars.indexOf(ferr))
+                                activeCar = -1
+                            aliveCars.splice(aliveCars.indexOf(ferr), 1)
+    
+                            ferr.off("click")
+                            ferr.position({ x: 112.5, y: 584 })
+                            ferr.rotation(0)
+                            ferr.setAttr("draggable", true)
+                        }
                     })
                     aliveCars.push(ferr)
                     break
@@ -166,18 +181,23 @@ ws.onmessage = event => {
 
                     ford.on("click", () => {
                         ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(ford)]}`)
-                        if (activeCar == aliveCars.indexOf(ford))
-                            activeCar = -1
-                        aliveCars.splice(aliveCars.indexOf(ford), 1)
-
-                        ford.off("click")
-                        ford.position({ x: 112.5, y: 624 })
-                        ford.rotation(0)
-                        ford.setAttr("draggable", true)
+                        if (!started) {
+                            if (activeCar == aliveCars.indexOf(ford))
+                                activeCar = -1
+                            aliveCars.splice(aliveCars.indexOf(ford), 1)
+    
+                            ford.off("click")
+                            ford.position({ x: 112.5, y: 624 })
+                            ford.rotation(0)
+                            ford.setAttr("draggable", true)
+                        }
                     })
                     aliveCars.push(ford)
                     break
             }
+        })
+        map.cells.forEach(c => {
+            isOccupied[c.col][c.row] = true
         })
     } else if (msg.includes("{\"id\":")) {
         const car_info = JSON.parse(msg)
@@ -241,6 +261,71 @@ var notification = new Konva.Text({
 })
 layerTexts.add(notification)
 
+// -------------- Draw how to play text --------------
+var howToPlay = new Konva.Text({
+    x: 230,
+    y: 200,
+    text: '---------------------------- How to play ---------------------------- ',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'black',
+})
+layerTexts.add(howToPlay)
+var howToPlay1 = new Konva.Text({
+    x: 230,
+    y: 225,
+    text: '1. Drag and drop to place components and cars.',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'black',
+})
+layerTexts.add(howToPlay1)
+var howToPlay2 = new Konva.Text({
+    x: 230,
+    y: 250,
+    text: '2. Press enter to start or stop the game.',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'black',
+})
+layerTexts.add(howToPlay2)
+var howToPlay3 = new Konva.Text({
+    x: 230,
+    y: 275,
+    text: '3. Use 1,2,3,4,5 keys to start a car. Other cars will stop.',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'black',
+})
+layerTexts.add(howToPlay3)
+var howToPlay4 = new Konva.Text({
+    x: 230,
+    y: 300,
+    text: '4. Use arrow keys to move the started car.',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'black',
+})
+layerTexts.add(howToPlay4)
+var howToPlay5 = new Konva.Text({
+    x: 230,
+    y: 325,
+    text: '5. Use mouse scroll to rotate components.',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'black',
+})
+layerTexts.add(howToPlay5)
+var howToPlay6 = new Konva.Text({
+    x: 230,
+    y: 350,
+    text: '6. Click on components and cars to delete them.',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'black',
+})
+layerTexts.add(howToPlay6)
+
 // -------------- Draw the map --------------
 var map = new Konva.Rect({
     x: 800,
@@ -301,32 +386,39 @@ straightRoad.on("dragend", () => {
             var y = Math.round((Math.floor(straightRoad.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} StraightRoad ${x} ${y}`)
 
-            var newStraightRoad = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newStraightRoad.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newStraightRoad.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newStraightRoad);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newStraightRoad.image(this)
-            };
-            imageObj.src = `./images/StraightRoad.png`;
-            newStraightRoad.on("click", () => {
-                newStraightRoad.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newStraightRoad.on("wheel", () => {
-                newStraightRoad.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newStraightRoad = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newStraightRoad.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newStraightRoad.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newStraightRoad);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newStraightRoad.image(this)
+                };
+                imageObj.src = `./images/StraightRoad.png`;
+                newStraightRoad.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newStraightRoad.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newStraightRoad.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newStraightRoad.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'StraightRoad' is not registered.")
@@ -362,32 +454,39 @@ turn90.on("dragend", () => {
             var y = Math.round((Math.floor(turn90.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Turn90 ${x} ${y}`)
 
-            var newTurn90 = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newTurn90.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newTurn90.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newTurn90);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newTurn90.image(this)
-            };
-            imageObj.src = `./images/Turn90.png`;
-            newTurn90.on("click", () => {
-                newTurn90.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newTurn90.on("wheel", () => {
-                newTurn90.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newTurn90 = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newTurn90.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newTurn90.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newTurn90);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newTurn90.image(this)
+                };
+                imageObj.src = `./images/Turn90.png`;
+                newTurn90.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newTurn90.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newTurn90.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newTurn90.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Turn90' is not registered.")
@@ -422,32 +521,39 @@ checkpoint.on("dragend", () => {
             var y = Math.round((Math.floor(checkpoint.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Checkpoint ${x} ${y}`)
 
-            var newCheckpoint = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newCheckpoint.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newCheckpoint.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newCheckpoint);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newCheckpoint.image(this)
-            };
-            imageObj.src = `./images/Checkpoint.png`;
-            newCheckpoint.on("click", () => {
-                newCheckpoint.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newCheckpoint.on("wheel", () => {
-                newCheckpoint.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newCheckpoint = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newCheckpoint.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newCheckpoint.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newCheckpoint);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newCheckpoint.image(this)
+                };
+                imageObj.src = `./images/Checkpoint.png`;
+                newCheckpoint.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newCheckpoint.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newCheckpoint.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newCheckpoint.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Checkpoint' is not registered.")
@@ -482,32 +588,39 @@ wall.on("dragend", () => {
             var y = Math.round((Math.floor(wall.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Wall ${x} ${y}`)
 
-            var newWall = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newWall.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newWall.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newWall);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newWall.image(this)
-            };
-            imageObj.src = `./images/Wall.png`;
-            newWall.on("click", () => {
-                newWall.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newWall.on("wheel", () => {
-                newWall.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newWall = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newWall.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newWall.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newWall);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newWall.image(this)
+                };
+                imageObj.src = `./images/Wall.png`;
+                newWall.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newWall.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })  
+                newWall.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newWall.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Wall' is not registered.")
@@ -542,32 +655,39 @@ booster.on("dragend", () => {
             var y = Math.round((Math.floor(booster.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Booster ${x} ${y}`)
 
-            var newBooster = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newBooster.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newBooster.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newBooster);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newBooster.image(this)
-            };
-            imageObj.src = `./images/Booster.png`;
-            newBooster.on("click", () => {
-                newBooster.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newBooster.on("wheel", () => {
-                newBooster.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newBooster = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newBooster.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newBooster.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newBooster);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newBooster.image(this)
+                };
+                imageObj.src = `./images/Booster.png`;
+                newBooster.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newBooster.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newBooster.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newBooster.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Booster' is not registered.")
@@ -602,32 +722,39 @@ refuel.on("dragend", () => {
             var y = Math.round((Math.floor(refuel.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Refuel ${x} ${y}`)
 
-            var newRefuel = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newRefuel.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newRefuel.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newRefuel);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newRefuel.image(this)
-            };
-            imageObj.src = `./images/Refuel.png`;
-            newRefuel.on("click", () => {
-                newRefuel.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newRefuel.on("wheel", () => {
-                newRefuel.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newRefuel = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newRefuel.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newRefuel.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newRefuel);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newRefuel.image(this)
+                };
+                imageObj.src = `./images/Refuel.png`;
+                newRefuel.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newRefuel.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newRefuel.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newRefuel.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Refuel' is not registered.")
@@ -662,32 +789,39 @@ ice.on("dragend", () => {
             var y = Math.round((Math.floor(ice.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Ice ${x} ${y}`)
 
-            var newIce = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newIce.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newIce.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newIce);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newIce.image(this)
-            };
-            imageObj.src = `./images/Ice.png`;
-            newIce.on("click", () => {
-                newIce.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newIce.on("wheel", () => {
-                newIce.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newIce = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newIce.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newIce.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newIce);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newIce.image(this)
+                };
+                imageObj.src = `./images/Ice.png`;
+                newIce.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newIce.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newIce.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newIce.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Ice' is not registered.")
@@ -722,32 +856,39 @@ mud.on("dragend", () => {
             var y = Math.round((Math.floor(mud.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Mud ${x} ${y}`)
 
-            var newMud = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newMud.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newMud.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newMud);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newMud.image(this)
-            };
-            imageObj.src = `./images/Mud.png`;
-            newMud.on("click", () => {
-                newMud.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newMud.on("wheel", () => {
-                newMud.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newMud = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newMud.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newMud.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newMud);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newMud.image(this)
+                };
+                imageObj.src = `./images/Mud.png`;
+                newMud.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newMud.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newMud.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newMud.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Mud' is not registered.")
@@ -782,32 +923,39 @@ decoration.on("dragend", () => {
             var y = Math.round((Math.floor(decoration.attrs.y) - (-22.5)) * dy)
             ws.send(`CREATE_COMP ${mapId} Decoration ${x} ${y}`)
 
-            var newDecoration = new Konva.Image({
-                x: 800 + x * 65 + 32.5,
-                y: 10 + y * 65 + 32.5,
-                width: 65,
-                height: 65,
-                offset: {
-                    x: 32.5,
-                    y: 32.5,
-                },
-            });
-            newDecoration.on('mouseover', () => document.body.style.cursor = 'pointer')
-            newDecoration.on('mouseout', () => document.body.style.cursor = 'default')
-            layerObjects.add(newDecoration);
-            var imageObj = new Image();
-            imageObj.onload = function () {
-                newDecoration.image(this)
-            };
-            imageObj.src = `./images/Decoration.png`;
-            newDecoration.on("click", () => {
-                newDecoration.destroy()
-                ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
-            })
-            newDecoration.on("wheel", () => {
-                newDecoration.rotate(90)
-                ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
-            })
+            if (!started && !isOccupied[x][y]) {
+                isOccupied[x][y] = true
+                var newDecoration = new Konva.Image({
+                    x: 800 + x * 65 + 32.5,
+                    y: 10 + y * 65 + 32.5,
+                    width: 65,
+                    height: 65,
+                    offset: {
+                        x: 32.5,
+                        y: 32.5,
+                    },
+                });
+                newDecoration.on('mouseover', () => document.body.style.cursor = 'pointer')
+                newDecoration.on('mouseout', () => document.body.style.cursor = 'default')
+                layerObjects.add(newDecoration);
+                var imageObj = new Image();
+                imageObj.onload = function () {
+                    newDecoration.image(this)
+                };
+                imageObj.src = `./images/Decoration.png`;
+                newDecoration.on("click", () => {
+                    ws.send(`DELETE_COMP ${mapId} ${x} ${y}`)
+                    if (!started) {
+                        newDecoration.destroy()
+                        isOccupied[x][y] = false
+                    }
+                })
+                newDecoration.on("wheel", () => {
+                    ws.send(`ROTATE_COMP ${mapId} ${x} ${y}`)
+                    if (!started)
+                        newDecoration.rotate(90)
+                })
+            }
         }
         else {
             notification.setAttr("text", "Component 'Decoration' is not registered.")
@@ -842,25 +990,31 @@ imageObj.src = `./images/Porsche.png`;
 porsche.on("dragend", () => {
     if (porsche.attrs.x + 24 >= 800 && porsche.attrs.x + 24 <= 1450 && porsche.attrs.y + 12.5 >= 10 && porsche.attrs.y + 12.5 <= 650) {
         if (registeredComps.includes("Car")) {
-            ws.send(`CREATE_CAR ${mapId} Porsche BATUHAN 100 1000`)
+            ws.send(`CREATE_CAR ${mapId} Porsche ${username} 100 1000`)
 
-            porsche.setAttr("x", 800 + 32.5)
-            porsche.setAttr("y", 10 + 32.5)
-            porsche.setAttr("draggable", false)
-            porsche.moveToTop()
+            if (!started) {
+                porsche.setAttr("x", 800 + 32.5)
+                porsche.setAttr("y", 10 + 32.5)
+                porsche.setAttr("draggable", false)
+                porsche.moveToTop()
 
-            porsche.on("click", () => {
-                ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(porsche)]}`)
-                if (activeCar == aliveCars.indexOf(porsche))
-                    activeCar = -1
-                aliveCars.splice(aliveCars.indexOf(porsche), 1)
-                
-                porsche.off("click")
+                porsche.on("click", () => {
+                    ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(porsche)]}`)
+                    if (!started) {
+                        if (activeCar == aliveCars.indexOf(porsche))
+                            activeCar = -1
+                        aliveCars.splice(aliveCars.indexOf(porsche), 1)
+                        
+                        porsche.off("click")
+                        porsche.position({ x: 112.5, y: 460 })
+                        porsche.rotation(0)
+                        porsche.setAttr("draggable", true)
+                    }
+                })
+                aliveCars.push(porsche)
+            } else {
                 porsche.position({ x: 112.5, y: 460 })
-                porsche.rotation(0)
-                porsche.setAttr("draggable", true)
-            })
-            aliveCars.push(porsche)
+            }
         }
         else {
             porsche.position({ x: 112.5, y: 460 })
@@ -897,24 +1051,30 @@ imageObj.src = `./images/Bmw.png`;
 bmw.on("dragend", () => {
     if (bmw.attrs.x + 24 >= 800 && bmw.attrs.x + 24 <= 1450 && bmw.attrs.y + 12.5 >= 10 && bmw.attrs.y + 12.5 <= 650) {
         if (registeredComps.includes("Car")) {
-            ws.send(`CREATE_CAR ${mapId} Bmw BATUHAN 80 1100`)
+            ws.send(`CREATE_CAR ${mapId} Bmw ${username} 80 1100`)
 
-            bmw.setAttr("x", 800 + 32.5)
-            bmw.setAttr("y", 10 + 32.5)
-            bmw.setAttr("draggable", false)
+            if (!started) {
+                bmw.setAttr("x", 800 + 32.5)
+                bmw.setAttr("y", 10 + 32.5)
+                bmw.setAttr("draggable", false)
 
-            bmw.on("click", () => {
-                ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(bmw)]}`)
-                if (activeCar == aliveCars.indexOf(bmw))
-                    activeCar = -1
-                aliveCars.splice(aliveCars.indexOf(bmw), 1)
-                
-                bmw.off("click")
+                bmw.on("click", () => {
+                    ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(bmw)]}`)
+                    if (!started) {
+                        if (activeCar == aliveCars.indexOf(bmw))
+                            activeCar = -1
+                        aliveCars.splice(aliveCars.indexOf(bmw), 1)
+                        
+                        bmw.off("click")
+                        bmw.position({ x: 112.5, y: 504 })
+                        bmw.rotation(0)
+                        bmw.setAttr("draggable", true)
+                    }
+                })
+                aliveCars.push(bmw)
+            } else {
                 bmw.position({ x: 112.5, y: 504 })
-                bmw.rotation(0)
-                bmw.setAttr("draggable", true)
-            })
-            aliveCars.push(bmw)
+            }
         }
         else {
             bmw.position({ x: 112.5, y: 504 })
@@ -950,24 +1110,30 @@ imageObj.src = `./images/Lamborghini.png`;
 lambo.on("dragend", () => {
     if (lambo.attrs.x + 24 >= 800 && lambo.attrs.x + 24 <= 1450 && lambo.attrs.y + 12.5 >= 10 && lambo.attrs.y + 12.5 <= 650) {
         if (registeredComps.includes("Car")) {
-            ws.send(`CREATE_CAR ${mapId} Lamborghini BATUHAN 110 800`)
+            ws.send(`CREATE_CAR ${mapId} Lamborghini ${username} 110 800`)
 
-            lambo.setAttr("x", 800 + 32.5)
-            lambo.setAttr("y", 10 + 32.5)
-            lambo.setAttr("draggable", false)
+            if (!started) {
+                lambo.setAttr("x", 800 + 32.5)
+                lambo.setAttr("y", 10 + 32.5)
+                lambo.setAttr("draggable", false)
 
-            lambo.on("click", () => {
-                ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(lambo)]}`)
-                if (activeCar == aliveCars.indexOf(lambo))
-                    activeCar = -1
-                aliveCars.splice(aliveCars.indexOf(lambo), 1)
-                
-                lambo.off("click")
+                lambo.on("click", () => {
+                    ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(lambo)]}`)
+                    if (!started) {
+                        if (activeCar == aliveCars.indexOf(lambo))
+                            activeCar = -1
+                        aliveCars.splice(aliveCars.indexOf(lambo), 1)
+                        
+                        lambo.off("click")
+                        lambo.position({ x: 112.5, y: 544 })
+                        lambo.rotation(0)
+                        lambo.setAttr("draggable", true)
+                    }
+                })
+                aliveCars.push(lambo)
+            } else {
                 lambo.position({ x: 112.5, y: 544 })
-                lambo.rotation(0)
-                lambo.setAttr("draggable", true)
-            })
-            aliveCars.push(lambo)
+            }
         }
         else {
             lambo.position({ x: 112.5, y: 544 })
@@ -1003,24 +1169,30 @@ imageObj.src = `./images/Ferrari.png`;
 ferr.on("dragend", () => {
     if (ferr.attrs.x + 24 >= 800 && ferr.attrs.x + 24 <= 1450 && ferr.attrs.y + 12.5 >= 10 && ferr.attrs.y + 12.5 <= 650) {
         if (registeredComps.includes("Car")) {
-            ws.send(`CREATE_CAR ${mapId} Ferrari BATUHAN 120 700`)
+            ws.send(`CREATE_CAR ${mapId} Ferrari ${username} 120 700`)
 
-            ferr.setAttr("x", 800 + 32.5)
-            ferr.setAttr("y", 10 + 32.5)
-            ferr.setAttr("draggable", false)
+            if (!started) {
+                ferr.setAttr("x", 800 + 32.5)
+                ferr.setAttr("y", 10 + 32.5)
+                ferr.setAttr("draggable", false)
 
-            ferr.on("click", () => {
-                ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(ferr)]}`)
-                if (activeCar == aliveCars.indexOf(ferr))
-                    activeCar = -1
-                aliveCars.splice(aliveCars.indexOf(ferr), 1)
-
-                ferr.off("click")
+                ferr.on("click", () => {
+                    ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(ferr)]}`)
+                    if (!started) {
+                        if (activeCar == aliveCars.indexOf(ferr))
+                            activeCar = -1
+                        aliveCars.splice(aliveCars.indexOf(ferr), 1)
+        
+                        ferr.off("click")
+                        ferr.position({ x: 112.5, y: 584 })
+                        ferr.rotation(0)
+                        ferr.setAttr("draggable", true)
+                    }
+                })
+                aliveCars.push(ferr)
+            } else {
                 ferr.position({ x: 112.5, y: 584 })
-                ferr.rotation(0)
-                ferr.setAttr("draggable", true)
-            })
-            aliveCars.push(ferr)
+            }
         }
         else {
             ferr.position({ x: 112.5, y: 584 })
@@ -1056,24 +1228,30 @@ imageObj.src = `./images/Ford.png`;
 ford.on("dragend", () => {
     if (ford.attrs.x + 24 >= 800 && ford.attrs.x + 24 <= 1450 && ford.attrs.y + 12.5 >= 10 && ford.attrs.y + 12.5 <= 650) {
         if (registeredComps.includes("Car")) {
-            ws.send(`CREATE_CAR ${mapId} Ford BATUHAN 70 1200`)
+            ws.send(`CREATE_CAR ${mapId} Ford ${username} 70 1200`)
 
-            ford.setAttr("x", 800 + 32.5)
-            ford.setAttr("y", 10 + 32.5)
-            ford.setAttr("draggable", false)
+            if (!started) {
+                ford.setAttr("x", 800 + 32.5)
+                ford.setAttr("y", 10 + 32.5)
+                ford.setAttr("draggable", false)
 
-            ford.on("click", () => {
-                ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(ford)]}`)
-                if (activeCar == aliveCars.indexOf(ford))
-                    activeCar = -1
-                aliveCars.splice(aliveCars.indexOf(ford), 1)
-
-                ford.off("click")
+                ford.on("click", () => {
+                    ws.send(`DELETE_CAR ${mapId} ${carIds[aliveCars.indexOf(ford)]}`)
+                    if (!started) {
+                        if (activeCar == aliveCars.indexOf(ford))
+                            activeCar = -1
+                        aliveCars.splice(aliveCars.indexOf(ford), 1)
+        
+                        ford.off("click")
+                        ford.position({ x: 112.5, y: 624 })
+                        ford.rotation(0)
+                        ford.setAttr("draggable", true)
+                    }
+                })
+                aliveCars.push(ford)
+            } else {
                 ford.position({ x: 112.5, y: 624 })
-                ford.rotation(0)
-                ford.setAttr("draggable", true)
-            })
-            aliveCars.push(ford)
+            }
         }
         else {
             ford.position({ x: 112.5, y: 624 })
@@ -1117,6 +1295,16 @@ function carAction(action) {
     }
 }
 
+function toggleGame() {
+    if (started) {
+        ws.send(`STOP_GAME ${mapId}`)
+        started = false
+    } else {
+        ws.send(`START_GAME ${mapId}`)
+        started = true
+    }
+}
+
 var container = stage.container()
 container.tabIndex = 1;
 container.focus();
@@ -1131,5 +1319,6 @@ container.addEventListener("keydown", e => {
         case 40: carAction("BRAKE"); break;
         case 37: carAction("LEFT"); break;
         case 39: carAction("RIGHT"); break;
+        case 13: toggleGame(); break;
     }
 })

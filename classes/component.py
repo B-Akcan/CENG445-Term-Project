@@ -142,23 +142,21 @@ class Car(Component):
         return f"Car {self.model} with driver {self.driver} is at position ({self.pos[0]:.2f}, {self.pos[1]:.2f}) with speed {self.speed:.1f}, fuel {self.fuel:.2f} and angle {self.angle:.2f}."
 
     def start(self) -> str:
-        if self.started:
-            return "You can not start an already-started car.\n"
         if not self.map.game_mode:
             return "You must start the game first.\n"
         self.started = True
         return f"Car '{self.model}' was started.\n"
 
     def stop(self) -> str:
-        if self.started:
-            self.started = False
-            self.speed = 0.0
-            self.accel_flag = False
-            self.brake_flag = False
-            self.left_flag = False
-            self.right_flag = False
-            return f"Car '{self.model}' was stopped.\n"
-        return "You can not stop an already-stopped car.\n"
+        if not self.map.game_mode:
+            return "You must start the game first.\n"
+        self.started = False
+        self.speed = 0.0
+        self.accel_flag = False
+        self.brake_flag = False
+        self.left_flag = False
+        self.right_flag = False
+        return f"Car '{self.model}' was stopped.\n"
 
     def accel(self) -> str:
         if self.started:

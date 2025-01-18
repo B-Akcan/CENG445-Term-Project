@@ -204,13 +204,16 @@ def handler(ws):
                                 comp = args[2]
                                 x, y = map(int, args[3:5])
                                 _map = Repo._maps[map_id]
-                                try:
-                                    _map[(x, y)] = Repo().components.create(comp)
-                                    ws.send(f"Component '{comp}' created at ({x},{y}).")
-                                except ValueError as e:
-                                    ws.send(str(e))
-                                except IndexError as e:
-                                    ws.send(str(e))
+                                if _map.game_mode:
+                                    ws.send("You can not create a component if game is started.")
+                                else:
+                                    try:
+                                        _map[(x, y)] = Repo().components.create(comp)
+                                        ws.send(f"Component '{comp}' created at ({x},{y}).")
+                                    except ValueError as e:
+                                        ws.send(str(e))
+                                    except IndexError as e:
+                                        ws.send(str(e))
                 elif args[0] == "ROTATE_COMP":
                     if username == "":
                         ws.send("Please first enter your username with USER <username> command.")
@@ -224,13 +227,16 @@ def handler(ws):
                             else:
                                 x, y = map(int, args[2:4])
                                 _map = Repo._maps[map_id]
-                                try:
-                                    _map[(x, y)].rotation = (_map[(x, y)].rotation + 1) % 4
-                                    ws.send(f"Component at ({x},{y}) of map {map_id} was rotated.")
-                                except ValueError as e:
-                                    ws.send(str(e))
-                                except IndexError as e:
-                                    ws.send(str(e))
+                                if _map.game_mode:
+                                    ws.send("You can not rotate a component if game is started.")
+                                else:
+                                    try:
+                                        _map[(x, y)].rotation = (_map[(x, y)].rotation + 1) % 4
+                                        ws.send(f"Component at ({x},{y}) of map {map_id} was rotated.")
+                                    except ValueError as e:
+                                        ws.send(str(e))
+                                    except IndexError as e:
+                                        ws.send(str(e))
                 elif args[0] == "DELETE_COMP":
                     if username == "":
                         ws.send("Please first enter your username with USER <username> command.")
@@ -244,15 +250,18 @@ def handler(ws):
                             else:
                                 x, y = map(int, args[2:4])
                                 _map = Repo._maps[map_id]
-                                try:
-                                    del _map[(x, y)]
-                                    ws.send("Component deleted.")
-                                except ValueError as e:
-                                    ws.send(str(e))
-                                except IndexError as e:
-                                    ws.send(str(e))
-                                except KeyError as e:
-                                    ws.send((str(e).replace("'", "") + ""))
+                                if _map.game_mode:
+                                    ws.send("You can not delete a component if game is started.")
+                                else:
+                                    try:
+                                        del _map[(x, y)]
+                                        ws.send("Component deleted.")
+                                    except ValueError as e:
+                                        ws.send(str(e))
+                                    except IndexError as e:
+                                        ws.send(str(e))
+                                    except KeyError as e:
+                                        ws.send((str(e).replace("'", "") + ""))
                 elif args[0] == "CREATE_CAR":
                     if username == "":
                         ws.send("Please first enter your username with USER <username> command.")
@@ -268,10 +277,13 @@ def handler(ws):
                                     model, driver = args[2:4]
                                     topspeed, topfuel = map(int, args[4:6])
                                     _map = Repo._maps[map_id]
-                                    car = Repo().components.create("Car", model=model, map_ref=_map, driver=driver, topspeed=topspeed, topfuel=topfuel)
-                                    _map.place(car, 0, 0)
-                                    car_id = _map.get_car_id(car)
-                                    ws.send(f"Created car with id {car_id}.")
+                                    if _map.game_mode:
+                                        ws.send("You can not create a car while game is started.")
+                                    else:
+                                        car = Repo().components.create("Car", model=model, map_ref=_map, driver=driver, topspeed=topspeed, topfuel=topfuel)
+                                        _map.place(car, 0, 0)
+                                        car_id = _map.get_car_id(car)
+                                        ws.send(f"Created car with id {car_id}.")
                                 except ValueError as e:
                                     ws.send(str(e))
                 elif args[0] == "DELETE_CAR":
@@ -286,12 +298,15 @@ def handler(ws):
                                 ws.send("Please attach the map first.")
                             else:
                                 _map = Repo._maps[map_id]
-                                car_id = int(args[2])
-                                try:
-                                    _map.remove_car(car_id)
-                                    ws.send(f"Deleted car with id {car_id}.")
-                                except KeyError as e:
-                                    ws.send((str(e).replace("'", "") + ""))
+                                if _map.game_mode:
+                                    ws.send("You can not delete a car while game is started.")
+                                else:
+                                    car_id = int(args[2])
+                                    try:
+                                        _map.remove_car(car_id)
+                                        ws.send(f"Deleted car with id {car_id}.")
+                                    except KeyError as e:
+                                        ws.send((str(e).replace("'", "") + ""))
                 elif args[0] == "START_CAR":
                     if username == "":
                         ws.send("Please first enter your username with USER <username> command.")

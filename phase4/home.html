@@ -6,19 +6,27 @@
         <title>Race Track Game - Home</title>
     </head>
     <body>
-        <a href="./home.html">Home</a>
-        <a href="./components.html">Components</a>
+        <div style="background-color: black; padding: 5px;">
+            <a href="./home.html" style="color: white;">Home</a>
+            <a href="./components.html" style="color: white;">Components</a>
+        </div>
 
         <div>
             <div>
-                <p id="notification"></p>
+                <p id="notification" style="font-size: large;"></p>
             </div>
-            <h1>Maps</h1>
-            <button onclick="createMap()">Create Map</button>
-            <h2>Attached Maps</h2>
-            <ul id="attached"></ul>
-            <h2>Unattached Maps</h2>
-            <ul id="unattached"></ul>
+            <div id="beforeLogin">
+                <input type="text" name="username" placeholder="Enter your username...">
+                <button onclick="login()">Submit</button>
+            </div>
+            <div id="afterLogin" style="display: none;">
+                <h1>Maps</h1>
+                <button onclick="createMap()">Create Map</button>
+                <h2>Attached Maps</h2>
+                <ul id="attached"></ul>
+                <h2>Unattached Maps</h2>
+                <ul id="unattached"></ul>
+            </div>
         </div>
     </body>
 </html>
